@@ -328,7 +328,5 @@ For support and questions:
 - Machine learning for demand prediction
 
 ---
-
-**Built with ❤️ for modern enterprise management**
-#   g r a d  
+#   g r a d u a t i o n _ p r o j e c t  
  

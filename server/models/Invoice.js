@@ -61,7 +61,7 @@ const invoiceSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['draft', 'sent', 'paid', 'overdue', 'cancelled'],
+    enum: ['draft', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled'],
     default: 'draft'
   },
   paymentTerms: {
@@ -70,6 +70,10 @@ const invoiceSchema = new mongoose.Schema({
   },
   notes: {
     type: String
+  },
+  relatedTransaction: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction'
   }
 }, {
   timestamps: true

@@ -218,7 +218,7 @@ router.post('/employees', [
       });
     }
 
-    const { name, email, password, role, department, salary, holidays } = req.body;
+    const { name, email, password, role, department, salary, holidays, phone } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -233,7 +233,7 @@ router.post('/employees', [
     console.log('Creating user with data:', { name, email, role, department });
     
     // Validate department against enum values
-    const validDepartments = ['HR', 'Manufacturing', 'SCM', 'CRM', 'Sales', 'Inventory', 'Purchasing'];
+    const validDepartments = ['HR', 'Manufacturing', 'SCM', 'CRM', 'Sales', 'Inventory', 'Purchasing', 'Finance'];
     if (!validDepartments.includes(department)) {
       return res.status(400).json({
         success: false,
@@ -272,7 +272,7 @@ router.post('/employees', [
         salary: salary ? parseFloat(salary) : 0,
         holidays: holidays ? parseInt(holidays) : 0,
         personalInfo: {
-          phone: ''
+          phone: phone || ''
         },
         isActive: true
       });
@@ -343,7 +343,7 @@ router.put('/employees/:id', [
   authorizeEmployeeManagement
 ], async (req, res) => {
   try {
-    const { name, email, role, department, salary, holidays } = req.body;
+    const { name, email, role, department, salary, holidays, phone, password } = req.body;
 
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -353,11 +353,32 @@ router.put('/employees/:id', [
       });
     }
 
+    // Validate department against enum values
+    const validDepartments = ['HR', 'Manufacturing', 'SCM', 'CRM', 'Sales', 'Inventory', 'Purchasing', 'Finance'];
+    if (department && !validDepartments.includes(department)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid department. Must be one of: ' + validDepartments.join(', ')
+      });
+    }
+
     // Update user information
     user.name = name;
     user.email = email;
     user.role = role;
     user.department = department;
+    
+    // Update password if provided
+    if (password && password.trim() !== '') {
+      if (password.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: 'Password must be at least 6 characters'
+        });
+      }
+      user.password = password; // Password will be hashed by the pre-save hook
+    }
+    
     await user.save();
 
     // Find and update employee record
@@ -375,6 +396,13 @@ router.put('/employees/:id', [
       employee.position = user.role === 'admin' ? 'Administrator' : 
                           user.role === 'manager' ? 'Manager' : 'Employee';
       employee.department = user.department;
+      // Update phone number
+      if (!employee.personalInfo) {
+        employee.personalInfo = { phone: '' };
+      }
+      if (phone !== undefined) {
+        employee.personalInfo.phone = phone || '';
+      }
       await employee.save();
     } else {
       // Create employee record if it doesn't exist
@@ -396,7 +424,7 @@ router.put('/employees/:id', [
         salary: salary ? parseFloat(salary) : 0,
         holidays: holidays ? parseInt(holidays) : 0,
         personalInfo: {
-          phone: ''
+          phone: phone || ''
         },
         isActive: true
       });

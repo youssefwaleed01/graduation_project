@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import Card from '../../components/Card';
 import {
   UserCheck,
   Users,
@@ -70,7 +71,7 @@ const CRMDashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">CRM Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">CRM Dashboard</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Overview of customer relationship management
         </p>
@@ -78,58 +79,64 @@ const CRMDashboard = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Users className="h-6 w-6 text-blue-600" />
+                <div className="bg-blue-100 dark:bg-blue-500/20 rounded-full p-3">
+                  <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Total Customers
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.totalCustomers || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <CheckCircle className="h-6 w-6 text-green-600" />
+                <div className="bg-green-100 dark:bg-green-500/20 rounded-full p-3">
+                  <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Active Customers
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.activeCustomers || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <TrendingUp className="h-6 w-6 text-purple-600" />
+                <div className="bg-purple-100 dark:bg-purple-500/20 rounded-full p-3">
+                  <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Engagement Rate
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.totalCustomers > 0 
                       ? Math.round((kpis.activeCustomers / kpis.totalCustomers) * 100) 
                       : 0}%
@@ -138,37 +145,39 @@ const CRMDashboard = () => {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <UserCheck className="h-6 w-6 text-orange-600" />
+                <div className="bg-orange-100 dark:bg-orange-500/20 rounded-full p-3">
+                  <UserCheck className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     New Customers (30 days)
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.newCustomers || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Recent Customers */}
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
+      <Card padding={false} className="overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-slate-700">
+          <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
             Recent Customers
           </h3>
         </div>
-        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+        <ul className="divide-y divide-gray-200 dark:divide-slate-700">
           {recentCustomers.length === 0 ? (
             <li className="px-4 py-5 sm:px-6">
               <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
@@ -177,11 +186,11 @@ const CRMDashboard = () => {
             </li>
           ) : (
             recentCustomers.map((customer) => (
-              <li key={customer._id} className="px-4 py-4">
+              <li key={customer._id} className="px-4 py-4 hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
                         {customer.name}
                       </p>
                       <div className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
@@ -202,7 +211,7 @@ const CRMDashboard = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.isActive !== false ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.isActive !== false ? 'bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-400' : 'bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-gray-300'}`}>
                       {customer.isActive !== false ? 'Active' : 'Inactive'}
                     </span>
                   </div>
@@ -211,7 +220,7 @@ const CRMDashboard = () => {
             ))
           )}
         </ul>
-      </div>
+      </Card>
     </div>
   );
 };

@@ -29,9 +29,11 @@ const RawMaterials = () => {
   const fetchMaterials = async () => {
     try {
       const response = await axios.get('/api/inventory/products?category=raw-material');
-      setMaterials(response.data.data);
+      setMaterials(response.data.data || []);
+      console.log('✅ Raw Materials fetched:', response.data.data?.length || 0);
     } catch (error) {
-      toast.error('Failed to fetch raw materials');
+      console.error('❌ Failed to fetch raw materials:', error);
+      toast.error(error.response?.data?.message || 'Failed to fetch raw materials');
     } finally {
       setLoading(false);
     }
@@ -80,17 +82,17 @@ const RawMaterials = () => {
 
   const handleEdit = (material) => {
     setEditingMaterial(material);
-    setFormData({
-      name: material.name,
-      sku: material.sku,
-      description: material.description || '',
-      unit: material.unit,
-      currentStock: material.currentStock,
-      minStockLevel: material.minStockLevel,
-      maxStockLevel: material.maxStockLevel,
-      unitCost: material.unitCost,
-      supplier: material.supplier?._id || ''
-    });
+      setFormData({
+        name: material.name,
+        sku: material.sku,
+        description: material.description || '',
+        unit: material.unit,
+        currentStock: material.currentStock,
+        minStockLevel: material.minStockLevel,
+        maxStockLevel: material.maxStockLevel,
+        unitCost: material.unitCost,
+        supplier: material.supplier?._id || ''
+      });
     setShowModal(true);
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import Card from '../../components/Card';
 import {
   Package,
   AlertTriangle,
@@ -82,9 +83,9 @@ const InventoryDashboard = () => {
   }
 
   const getStatusColor = (current, min) => {
-    if (current === 0) return 'bg-red-100 text-red-800';
-    if (current <= min) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-green-100 text-green-800';
+    if (current === 0) return 'bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-400';
+    if (current <= min) return 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-800 dark:text-yellow-400';
+    return 'bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-400';
   };
 
   const getStatusText = (current, min) => {
@@ -97,7 +98,7 @@ const InventoryDashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Inventory Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Inventory Dashboard</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Overview of your inventory levels and stock management
         </p>
@@ -105,96 +106,104 @@ const InventoryDashboard = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Package className="h-6 w-6 text-blue-600" />
+                <div className="bg-blue-100 dark:bg-blue-500/20 rounded-full p-3">
+                  <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Total Products
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.totalProducts || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <DollarSign className="h-6 w-6 text-green-600" />
+                <div className="bg-green-100 dark:bg-green-500/20 rounded-full p-3">
+                  <DollarSign className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Stock Value
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     ${(kpis?.stockValue || 0).toLocaleString()}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <AlertTriangle className="h-6 w-6 text-yellow-600" />
+                <div className="bg-yellow-100 dark:bg-yellow-500/20 rounded-full p-3">
+                  <AlertTriangle className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Low Stock
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.lowStockCount || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <AlertCircle className="h-6 w-6 text-red-600" />
+                <div className="bg-red-100 dark:bg-red-500/20 rounded-full p-3">
+                  <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Out of Stock
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.outOfStockCount || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Low Stock Alerts */}
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 flex items-center">
-            <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2" />
+      <Card padding={false} className="overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-slate-700">
+          <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center">
+            <AlertTriangle className="h-5 w-5 text-yellow-500 dark:text-yellow-400 mr-2" />
             Low Stock Alerts
           </h3>
         </div>
-        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+        <ul className="divide-y divide-gray-200 dark:divide-slate-700">
           {lowStockProducts.length === 0 ? (
             <li className="px-4 py-5 sm:px-6">
               <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
@@ -203,11 +212,11 @@ const InventoryDashboard = () => {
             </li>
           ) : (
             lowStockProducts.map((product) => (
-              <li key={product._id} className="px-4 py-4">
+              <li key={product._id} className="px-4 py-4 hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
                         {product.name}
                       </p>
                       <div className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
@@ -229,7 +238,7 @@ const InventoryDashboard = () => {
             ))
           )}
         </ul>
-      </div>
+      </Card>
 
       {/* Category Distribution */}
       {kpis?.byCategory && Object.keys(kpis.byCategory).length > 0 && (() => {
@@ -241,9 +250,9 @@ const InventoryDashboard = () => {
         }));
 
         return (
-          <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
-            <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
+          <Card padding={false} className="overflow-hidden">
+            <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-slate-700">
+              <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
                 Products by Category
               </h3>
             </div>
@@ -267,9 +276,10 @@ const InventoryDashboard = () => {
                   <Tooltip 
                     formatter={(value, name) => [value, name]}
                     contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px'
+                      backgroundColor: document.documentElement.classList.contains('dark') ? '#1e293b' : 'rgba(255, 255, 255, 0.95)',
+                      border: `1px solid ${document.documentElement.classList.contains('dark') ? '#334155' : '#e5e7eb'}`,
+                      borderRadius: '6px',
+                      color: document.documentElement.classList.contains('dark') ? '#fff' : '#000'
                     }}
                   />
                   <Legend 
@@ -278,7 +288,7 @@ const InventoryDashboard = () => {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-          </div>
+          </Card>
         );
       })()}
     </div>

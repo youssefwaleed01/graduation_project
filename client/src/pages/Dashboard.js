@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import Card from '../components/Card';
 import {
   Users,
   ShoppingCart,
@@ -31,6 +33,7 @@ import {
 } from 'recharts';
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [kpis, setKpis] = useState(null);
   const [recentActivities, setRecentActivities] = useState([]);
@@ -87,58 +90,58 @@ const Dashboard = () => {
     if (user?.role === 'admin') {
       return [
         {
-          title: 'Total Employees',
+          title: t('mainDashboard.kpis.totalEmployees'),
           value: kpis?.employees?.total || 0,
           icon: Users,
           color: 'text-blue-600',
           bgColor: 'bg-blue-100'
         },
         {
-          title: 'Sales Revenue',
+          title: t('mainDashboard.kpis.salesRevenue'),
           value: `$${((kpis?.sales?.totalRevenue || 0)).toLocaleString()}`,
           icon: DollarSign,
           color: 'text-green-600',
           bgColor: 'bg-green-100'
         },
         {
-          title: 'Total Products',
+          title: t('mainDashboard.kpis.totalProducts'),
           value: kpis?.inventory?.totalProducts || 0,
           icon: Package,
           color: 'text-purple-600',
           bgColor: 'bg-purple-100'
         },
         {
-          title: 'Low Stock Alerts',
+          title: t('mainDashboard.kpis.lowStockAlerts'),
           value: kpis?.inventory?.lowStockAlerts || 0,
           icon: AlertTriangle,
           color: 'text-red-600',
           bgColor: 'bg-red-100'
         },
         {
-          title: 'Pending Orders',
+          title: t('mainDashboard.kpis.pendingOrders'),
           value: (kpis?.production?.pending || 0) + (kpis?.purchasing?.pending || 0),
           icon: Clock,
           color: 'text-yellow-600',
           bgColor: 'bg-yellow-100'
         },
         {
-          title: 'Total Customers',
+          title: t('mainDashboard.kpis.totalCustomers'),
           value: kpis?.customers?.total || 0,
           icon: UserCheck,
           color: 'text-indigo-600',
           bgColor: 'bg-indigo-100'
         },
         {
-          title: 'Active Suppliers',
+          title: t('mainDashboard.kpis.activeSuppliers'),
           value: kpis?.suppliers?.total || 0,
           icon: Truck,
           color: 'text-orange-600',
           bgColor: 'bg-orange-100'
         },
         {
-          title: 'Top Product',
+          title: t('mainDashboard.kpis.topProduct'),
           value: kpis?.topProduct?.name || 'N/A',
-          subtitle: kpis?.topProduct ? `${kpis.topProduct.totalQuantity} sold` : 'No sales data',
+          subtitle: kpis?.topProduct ? `${kpis.topProduct.totalQuantity} ${t('mainDashboard.kpis.sold')}` : t('mainDashboard.kpis.noSalesData'),
           icon: Star,
           color: 'text-pink-600',
           bgColor: 'bg-pink-100'
@@ -153,21 +156,21 @@ const Dashboard = () => {
       case 'sales':
         return [
           {
-            title: 'Total Revenue',
+            title: t('mainDashboard.kpis.totalRevenue'),
             value: `$${((kpis?.revenue || 0)).toLocaleString()}`,
             icon: DollarSign,
             color: 'text-green-600',
             bgColor: 'bg-green-100'
           },
           {
-            title: 'Orders This Month',
+            title: t('mainDashboard.kpis.ordersThisMonth'),
             value: kpis?.orders || 0,
             icon: ShoppingCart,
             color: 'text-blue-600',
             bgColor: 'bg-blue-100'
           },
           {
-            title: 'Active Customers',
+            title: t('mainDashboard.kpis.activeCustomers'),
             value: kpis?.customers || 0,
             icon: UserCheck,
             color: 'text-indigo-600',
@@ -176,7 +179,7 @@ const Dashboard = () => {
           {
             title: 'Top Product',
             value: kpis?.topProduct?.name || 'N/A',
-            subtitle: kpis?.topProduct ? `${kpis.topProduct.quantity} sold` : 'No sales data',
+            subtitle: kpis?.topProduct ? `${kpis.topProduct.quantity} ${t('mainDashboard.kpis.sold')}` : t('mainDashboard.kpis.noSalesData'),
             icon: Star,
             color: 'text-orange-600',
             bgColor: 'bg-orange-100'
@@ -186,14 +189,14 @@ const Dashboard = () => {
       case 'purchasing':
         return [
           {
-            title: 'Total Spending',
+            title: t('mainDashboard.kpis.totalSpending'),
             value: `$${((kpis?.spending || 0)).toLocaleString()}`,
             icon: DollarSign,
             color: 'text-purple-600',
             bgColor: 'bg-purple-100'
           },
           {
-            title: 'Purchase Orders',
+            title: t('mainDashboard.kpis.purchaseOrders'),
             value: kpis?.orders || 0,
             icon: ShoppingBag,
             color: 'text-blue-600',
@@ -218,28 +221,28 @@ const Dashboard = () => {
       case 'hr':
         return [
           {
-            title: 'Total Employees',
+            title: t('mainDashboard.kpis.totalEmployees'),
             value: kpis?.employees || 0,
             icon: Users,
             color: 'text-blue-600',
             bgColor: 'bg-blue-100'
           },
           {
-            title: 'Present Today',
+            title: t('mainDashboard.kpis.presentToday'),
             value: kpis?.present || 0,
             icon: UserCheck,
             color: 'text-green-600',
             bgColor: 'bg-green-100'
           },
           {
-            title: 'Absent Today',
+            title: t('mainDashboard.kpis.absentToday'),
             value: kpis?.absent || 0,
             icon: AlertTriangle,
             color: 'text-red-600',
             bgColor: 'bg-red-100'
           },
           {
-            title: 'New Hires This Month',
+            title: t('mainDashboard.kpis.newHiresThisMonth'),
             value: kpis?.newHires || 0,
             icon: TrendingUp,
             color: 'text-purple-600',
@@ -250,28 +253,28 @@ const Dashboard = () => {
       case 'inventory':
         return [
           {
-            title: 'Total Products',
+            title: t('mainDashboard.kpis.totalProducts'),
             value: kpis?.products || 0,
             icon: Package,
             color: 'text-blue-600',
             bgColor: 'bg-blue-100'
           },
           {
-            title: 'Low Stock Items',
+            title: t('mainDashboard.kpis.lowStockItems'),
             value: kpis?.lowStock || 0,
             icon: AlertTriangle,
             color: 'text-red-600',
             bgColor: 'bg-red-100'
           },
           {
-            title: 'Total Value',
+            title: t('mainDashboard.kpis.totalValue'),
             value: `$${((kpis?.totalValue || 0)).toLocaleString()}`,
             icon: DollarSign,
             color: 'text-green-600',
             bgColor: 'bg-green-100'
           },
           {
-            title: 'Recent Movements',
+            title: t('mainDashboard.kpis.recentMovements'),
             value: kpis?.movements || 0,
             icon: TrendingUp,
             color: 'text-purple-600',
@@ -282,21 +285,21 @@ const Dashboard = () => {
       case 'manufacturing':
         return [
           {
-            title: 'Production Orders',
+            title: t('mainDashboard.kpis.productionOrders'),
             value: kpis?.orders || 0,
             icon: Factory,
             color: 'text-blue-600',
             bgColor: 'bg-blue-100'
           },
           {
-            title: 'Completed Today',
+            title: t('mainDashboard.kpis.completedToday'),
             value: kpis?.completed || 0,
             icon: UserCheck,
             color: 'text-green-600',
             bgColor: 'bg-green-100'
           },
           {
-            title: 'In Progress',
+            title: t('mainDashboard.kpis.inProgress'),
             value: kpis?.inProgress || 0,
             icon: Clock,
             color: 'text-yellow-600',
@@ -314,8 +317,8 @@ const Dashboard = () => {
       default:
         return [
           {
-            title: 'Department Overview',
-            value: 'No data available',
+            title: t('mainDashboard.kpis.departmentOverview'),
+            value: t('mainDashboard.kpis.noDataAvailable'),
             icon: Package,
             color: 'text-gray-600',
             bgColor: 'bg-gray-100'
@@ -359,9 +362,9 @@ const Dashboard = () => {
     <div className="space-y-4">
       {/* Header */}
       <div className="mb-2">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('mainDashboard.title')}</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Overview of your ERP system performance
+          {t('mainDashboard.description')}
         </p>
       </div>
 
@@ -369,7 +372,7 @@ const Dashboard = () => {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {kpiCards.map((card, index) => (
-          <div key={index} className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+          <Card key={index} className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -382,7 +385,7 @@ const Dashboard = () => {
                     <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                       {card.title}
                     </dt>
-                    <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    <dd className="text-lg font-medium text-gray-900 dark:text-white">
                       {card.value}
                     </dd>
                     {card.subtitle && (
@@ -394,7 +397,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
@@ -402,16 +405,16 @@ const Dashboard = () => {
       {/* Charts and Activities */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sales Chart */}
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+        <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-              {user?.role === 'admin' ? 'Sales Revenue Chart' : `${user?.department} Performance Trend`}
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+              {user?.role === 'admin' ? t('mainDashboard.charts.salesRevenueChart') : `${user?.department} ${t('mainDashboard.charts.performanceTrend')}`}
             </h3>
             <div className="flex items-center text-sm text-green-600">
               <TrendingUp className="h-4 w-4 mr-1" />
               {departmentChart.length > 0 ? 
                 `$${departmentChart.reduce((sum, item) => sum + (user?.role === 'admin' ? (item.revenue || 0) : (item.value || 0)), 0).toLocaleString()} total` : 
-                'No data'
+                  t('common.noData')
               }
             </div>
           </div>
@@ -436,12 +439,13 @@ const Dashboard = () => {
                     tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                   />
                   <Tooltip 
-                    formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']}
+                    formatter={(value) => [`$${value.toLocaleString()}`, t('sales.dashboard.revenue')]}
                     contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
+                      backgroundColor: document.documentElement.classList.contains('dark') ? '#1e293b' : '#fff',
+                      border: `1px solid ${document.documentElement.classList.contains('dark') ? '#334155' : '#e5e7eb'}`,
                       borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      color: document.documentElement.classList.contains('dark') ? '#fff' : '#000'
                     }}
                     labelFormatter={(value) => new Date(value).toLocaleDateString()}
                   />
@@ -456,19 +460,19 @@ const Dashboard = () => {
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
                 <div className="text-center">
                   <TrendingUp className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                  <p>No sales data available</p>
+                  <p>{t('mainDashboard.charts.noSalesDataAvailable')}</p>
                 </div>
               </div>
             )}
           </div>
-        </div>
+        </Card>
 
         {/* Recent Activities */}
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Recent Activities</h3>
+        <Card>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{t('mainDashboard.charts.recentActivities')}</h3>
           <div className="space-y-4">
             {recentActivities.slice(0, 5).map((activity, index) => {
               const Icon = getActivityIcon(activity.type);
@@ -480,7 +484,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900 dark:text-gray-100">{activity.description}</p>
+                    <p className="text-sm text-gray-900 dark:text-white">{activity.description}</p>
                     <div className="flex items-center space-x-2 mt-1">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(activity.status)}`}>
                         {activity.status}
@@ -494,85 +498,85 @@ const Dashboard = () => {
               );
             })}
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Additional Metrics */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Employee Attendance */}
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Employee Attendance</h3>
+        <Card>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{t('mainDashboard.charts.employeeAttendance')}</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Present Today</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t('mainDashboard.charts.presentToday')}</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {kpis?.employees?.presentToday || 0}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Total Employees</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t('mainDashboard.charts.totalEmployees')}</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {kpis?.employees?.total || 0}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Attendance Rate</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t('mainDashboard.charts.attendanceRate')}</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {kpis?.employees?.attendanceRate || 0}%
               </span>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Production Status */}
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Production Status</h3>
+        <Card>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{t('mainDashboard.charts.productionStatus')}</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Pending Orders</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t('mainDashboard.charts.pendingOrders')}</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {kpis?.production?.pending || 0}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">In Progress</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t('mainDashboard.charts.inProgress')}</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {kpis?.production?.inProgress || 0}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Total Orders</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t('mainDashboard.charts.totalOrders')}</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {kpis?.production?.totalOrders || 0}
               </span>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Inventory Value */}
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Inventory Value</h3>
+        <Card>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">{t('mainDashboard.charts.inventoryValue')}</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Total Value</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t('mainDashboard.charts.totalValue')}</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
                 ${(kpis?.inventory?.totalValue || 0).toLocaleString()}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Low Stock Items</span>
-              <span className="text-sm font-medium text-red-600">
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t('mainDashboard.charts.lowStockItems')}</span>
+              <span className="text-sm font-medium text-red-600 dark:text-red-400">
                 {kpis?.inventory?.lowStockAlerts || 0}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Total Products</span>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Total Products</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {kpis?.inventory?.totalProducts || 0}
               </span>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

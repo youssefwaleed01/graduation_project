@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import Card from '../../components/Card';
 import {
   Users,
   Clock,
@@ -93,7 +94,7 @@ const HRDashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">HR Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">HR Dashboard</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Overview of your human resources and workforce analytics
         </p>
@@ -101,58 +102,64 @@ const HRDashboard = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Users className="h-6 w-6 text-blue-600" />
+                <div className="bg-blue-100 dark:bg-blue-500/20 rounded-full p-3">
+                  <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Total Employees
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.totalEmployees || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Clock className="h-6 w-6 text-purple-600" />
+                <div className="bg-purple-100 dark:bg-purple-500/20 rounded-full p-3">
+                  <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Today's Attendance
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.todayAttendance || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Calendar className="h-6 w-6 text-orange-600" />
+                <div className="bg-orange-100 dark:bg-orange-500/20 rounded-full p-3">
+                  <Calendar className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Attendance Rate
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.totalEmployees > 0 
                       ? Math.round((kpis.todayAttendance / kpis.totalEmployees) * 100) 
                       : 0}%
@@ -161,14 +168,14 @@ const HRDashboard = () => {
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Department Distribution */}
       {departmentChartData.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
-          <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
+        <Card padding={false} className="overflow-hidden">
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-slate-700">
+            <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
               Department Distribution
             </h3>
           </div>
@@ -193,10 +200,11 @@ const HRDashboard = () => {
                   <Tooltip 
                     formatter={(value) => [`${value} employees`, 'Count']}
                     contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
+                      backgroundColor: document.documentElement.classList.contains('dark') ? '#1e293b' : '#fff',
+                      border: `1px solid ${document.documentElement.classList.contains('dark') ? '#334155' : '#e5e7eb'}`,
                       borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      color: document.documentElement.classList.contains('dark') ? '#fff' : '#000'
                     }}
                   />
                   <Legend 
@@ -212,7 +220,7 @@ const HRDashboard = () => {
               </ResponsiveContainer>
             </div>
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );

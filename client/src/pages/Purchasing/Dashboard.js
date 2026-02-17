@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import Card from '../../components/Card';
 import {
   ShoppingBag,
   Truck,
@@ -115,10 +116,10 @@ const PurchasingDashboard = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'received': return 'bg-green-100 text-green-800';
-      case 'ordered': return 'bg-blue-100 text-blue-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'received': return 'bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-400';
+      case 'ordered': return 'bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-400';
+      case 'pending': return 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-800 dark:text-yellow-400';
+      default: return 'bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-gray-300';
     }
   };
 
@@ -126,7 +127,7 @@ const PurchasingDashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Purchasing Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Purchasing Dashboard</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Overview of your purchasing activities and metrics
         </p>
@@ -134,74 +135,101 @@ const PurchasingDashboard = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <ShoppingBag className="h-6 w-6 text-blue-600" />
+                <div className="bg-blue-100 dark:bg-blue-500/20 rounded-full p-3">
+                  <ShoppingBag className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Total Orders
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.totalOrders || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Clock className="h-6 w-6 text-yellow-600" />
+                <div className="bg-yellow-100 dark:bg-yellow-500/20 rounded-full p-3">
+                  <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Pending Approval
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.pendingOrders || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Package className="h-6 w-6 text-purple-600" />
+                <div className="bg-purple-100 dark:bg-purple-500/20 rounded-full p-3">
+                  <Package className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Auto-Generated
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.autoGeneratedOrders || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="bg-green-100 dark:bg-green-500/20 rounded-full p-3">
+                  <DollarSign className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                    Total Spending
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
+                    ${(kpis?.totalSpending || 0).toLocaleString()}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Total Spending Line Chart */}
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+      <Card padding={false} className="overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-slate-700">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
+              <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
                 Total Spending
               </h3>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -210,7 +238,7 @@ const PurchasingDashboard = () => {
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-500 dark:text-gray-400">Total</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                 ${(kpis?.totalSpending || 0).toLocaleString()}
               </p>
             </div>
@@ -219,23 +247,28 @@ const PurchasingDashboard = () => {
         <div className="px-4 py-5 sm:p-6">
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={spendingChartData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-gray-300 dark:stroke-gray-700" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0 dark:stroke-slate-600" />
               <XAxis 
                 dataKey="month" 
-                className="text-xs"
-                stroke="#6B7280"
+                stroke="#666 dark:stroke-gray-400"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
               />
               <YAxis 
-                className="text-xs"
-                stroke="#6B7280"
+                stroke="#666 dark:stroke-gray-400"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
                 tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
               />
               <Tooltip 
                 formatter={(value) => [`$${value.toLocaleString()}`, 'Spending']}
                 contentStyle={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '6px'
+                  backgroundColor: document.documentElement.classList.contains('dark') ? '#1e293b' : 'rgba(255, 255, 255, 0.95)',
+                  border: `1px solid ${document.documentElement.classList.contains('dark') ? '#334155' : '#e5e7eb'}`,
+                  borderRadius: '6px',
+                  color: document.documentElement.classList.contains('dark') ? '#fff' : '#000'
                 }}
               />
               <Line 
@@ -249,16 +282,16 @@ const PurchasingDashboard = () => {
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </Card>
 
       {/* Recent Orders */}
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
+      <Card padding={false} className="overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-slate-700">
+          <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
             Recent Purchase Orders
           </h3>
         </div>
-        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+        <ul className="divide-y divide-gray-200 dark:divide-slate-700">
           {recentOrders.length === 0 ? (
             <li className="px-4 py-5 sm:px-6">
               <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
@@ -267,7 +300,7 @@ const PurchasingDashboard = () => {
             </li>
           ) : (
             recentOrders.map((order) => (
-              <li key={order._id} className="px-4 py-4">
+              <li key={order._id} className="px-4 py-4 hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
@@ -275,16 +308,16 @@ const PurchasingDashboard = () => {
                     </div>
                     <div className="ml-4">
                       <div className="flex items-center">
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
                           {order.orderNumber}
                         </p>
                         {order.autoGenerated && (
-                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-500/20 text-yellow-800 dark:text-yellow-400">
                             Auto
                           </span>
                         )}
                         {!order.autoGenerated && (
-                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-400">
                             Manual
                           </span>
                         )}
@@ -308,30 +341,30 @@ const PurchasingDashboard = () => {
             ))
           )}
         </ul>
-      </div>
+      </Card>
 
       {/* Alerts */}
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
+      <Card padding={false} className="overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-slate-700">
+          <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
             Quick Actions
           </h3>
         </div>
         <div className="px-4 py-5 sm:px-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
-              <ShoppingBag className="h-8 w-8 text-blue-600 mr-3" />
+            <div className="flex items-center p-4 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors cursor-pointer">
+              <ShoppingBag className="h-8 w-8 text-blue-600 dark:text-blue-400 mr-3" />
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Pending Approval</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Pending Approval</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {kpis?.pendingOrders || 0} orders waiting for your approval
                 </p>
               </div>
             </div>
-            <div className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
-              <AlertTriangle className="h-8 w-8 text-yellow-600 mr-3" />
+            <div className="flex items-center p-4 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors cursor-pointer">
+              <AlertTriangle className="h-8 w-8 text-yellow-600 dark:text-yellow-400 mr-3" />
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Auto-Generated POs</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Auto-Generated POs</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {kpis?.autoGeneratedOrders || 0} orders created automatically
                 </p>
@@ -339,7 +372,7 @@ const PurchasingDashboard = () => {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

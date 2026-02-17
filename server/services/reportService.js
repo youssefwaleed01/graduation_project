@@ -1,9 +1,15 @@
 const moment = require('moment');
+const ExcelJS = require('exceljs');
 const SalesOrder = require('../models/SalesOrder');
 const PurchaseOrder = require('../models/PurchaseOrder');
 const Customer = require('../models/Customer');
 const Product = require('../models/Product');
 const Supplier = require('../models/Supplier');
+const InventoryTransaction = require('../models/InventoryTransaction');
+const ProductionOrder = require('../models/ProductionOrder');
+const Complaint = require('../models/Complaint');
+const Employee = require('../models/Employee');
+const Attendance = require('../models/Attendance');
 
 class ReportService {
   constructor() {
@@ -383,6 +389,984 @@ class ReportService {
       console.error('Error generating custom reports:', error);
       throw error;
     }
+  }
+
+  // Fetch inventory report data
+  async fetchInventoryReport(startDate, endDate) {
+    try {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      // Get all products
+      const products = await Product.find({ isActive: true })
+        .populate('supplier', 'name')
+        .sort({ name: 1 });
+
+      const totalInventoryValue = products.reduce((sum, p) => 
+        sum + (p.currentStock * (p.unitCost || 0)), 0
+      );
+
+      // Get transactions in date range
+      const transactions = await InventoryTransaction.find({
+        createdAt: { $gte: start, $lte: end }
+      })
+        .populate('product', 'name sku category')
+        .populate('performedBy', 'employeeId')
+        .sort({ createdAt: -1 });
+
+      // Calculate transaction stats
+      const transactionStats = {
+        totalTransactions: transactions.length,
+        inTransactions: transactions.filter(t => t.type === 'in').length,
+        outTransactions: transactions.filter(t => t.type === 'out').length,
+        adjustmentTransactions: transactions.filter(t => t.type === 'adjustment').length,
+        totalInValue: transactions
+          .filter(t => t.type === 'in')
+          .reduce((sum, t) => sum + (t.totalCost || 0), 0),
+        totalOutValue: transactions
+          .filter(t => t.type === 'out')
+          .reduce((sum, t) => sum + (t.totalCost || 0), 0)
+      };
+
+      // Low stock products
+      const lowStockProducts = products.filter(p => 
+        p.currentStock <= p.minStockLevel
+      ).map(p => ({
+        name: p.name,
+        sku: p.sku,
+        currentStock: p.currentStock,
+        minStockLevel: p.minStockLevel,
+        maxStockLevel: p.maxStockLevel,
+        unitCost: p.unitCost,
+        category: p.category
+      }));
+
+      // Category breakdown
+      const categoryMap = new Map();
+      products.forEach(product => {
+        const category = product.category || 'Uncategorized';
+        if (!categoryMap.has(category)) {
+          categoryMap.set(category, {
+            count: 0,
+            totalValue: 0,
+            totalStock: 0
+          });
+        }
+        const cat = categoryMap.get(category);
+        cat.count += 1;
+        cat.totalValue += product.currentStock * (product.unitCost || 0);
+        cat.totalStock += product.currentStock;
+      });
+
+      const categoryBreakdown = Array.from(categoryMap.entries()).map(([category, data]) => ({
+        category,
+        ...data
+      }));
+
+      // Top products by value
+      const topProductsByValue = products
+        .map(p => ({
+          name: p.name,
+          sku: p.sku,
+          category: p.category,
+          stock: p.currentStock,
+          unitCost: p.unitCost,
+          totalValue: p.currentStock * (p.unitCost || 0)
+        }))
+        .sort((a, b) => b.totalValue - a.totalValue)
+        .slice(0, 10);
+
+      return {
+        summary: {
+          totalProducts: products.length,
+          totalInventoryValue,
+          lowStockCount: lowStockProducts.length,
+          period: { startDate, endDate }
+        },
+        transactionStats,
+        lowStockProducts,
+        categoryBreakdown,
+        topProductsByValue,
+        transactions: transactions.slice(0, 100) // Limit to recent 100
+      };
+    } catch (error) {
+      console.error('Error fetching inventory report:', error);
+      throw error;
+    }
+  }
+
+  // Fetch manufacturing report data
+  async fetchManufacturingReport(startDate, endDate) {
+    try {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      // Get production orders
+      const productionOrders = await ProductionOrder.find({
+        createdAt: { $gte: start, $lte: end }
+      })
+        .populate('product', 'name sku')
+        .populate('assignedEmployees.employee', 'employeeId position')
+        .populate('materials.product', 'name sku')
+        .populate('salesOrder', 'orderNumber')
+        .sort({ createdAt: -1 });
+
+      const completedOrders = productionOrders.filter(o => o.status === 'completed');
+      const inProgressOrders = productionOrders.filter(o => o.status === 'in-progress');
+      const pendingOrders = productionOrders.filter(o => o.status === 'pending');
+
+      // Calculate efficiency metrics
+      const totalQuantity = completedOrders.reduce((sum, o) => sum + (o.quantity || 0), 0);
+      const totalMaterialCost = completedOrders.reduce((sum, order) => {
+        const materialCost = order.materials.reduce((mSum, m) => 
+          mSum + (m.quantity * (m.unitCost || 0)), 0
+        );
+        return sum + materialCost;
+      }, 0);
+
+      const averageProductionTime = completedOrders
+        .filter(o => o.startDate && o.endDate)
+        .map(o => {
+          const diff = new Date(o.endDate) - new Date(o.startDate);
+          return diff / (1000 * 60 * 60); // hours
+        });
+
+      const avgProductionTime = averageProductionTime.length > 0
+        ? averageProductionTime.reduce((a, b) => a + b, 0) / averageProductionTime.length
+        : 0;
+
+      // Employee performance
+      const employeeMap = new Map();
+      completedOrders.forEach(order => {
+        order.assignedEmployees.forEach(assignment => {
+          if (assignment.employee) {
+            const empId = assignment.employee._id.toString();
+            if (!employeeMap.has(empId)) {
+              employeeMap.set(empId, {
+                employeeId: assignment.employee.employeeId,
+                position: assignment.employee.position,
+                ordersCompleted: 0,
+                totalHours: 0
+              });
+            }
+            const emp = employeeMap.get(empId);
+            emp.ordersCompleted += 1;
+            if (assignment.startTime && assignment.endTime) {
+              const hours = (new Date(assignment.endTime) - new Date(assignment.startTime)) / (1000 * 60 * 60);
+              emp.totalHours += hours;
+            }
+          }
+        });
+      });
+
+      const topEmployees = Array.from(employeeMap.values())
+        .map(emp => ({
+          ...emp,
+          averageHoursPerOrder: emp.ordersCompleted > 0 ? emp.totalHours / emp.ordersCompleted : 0
+        }))
+        .sort((a, b) => b.ordersCompleted - a.ordersCompleted)
+        .slice(0, 10);
+
+      // Material usage
+      const materialMap = new Map();
+      completedOrders.forEach(order => {
+        order.materials.forEach(material => {
+          if (material.product) {
+            const prodId = material.product._id.toString();
+            if (!materialMap.has(prodId)) {
+              materialMap.set(prodId, {
+                name: material.product.name,
+                sku: material.product.sku,
+                totalQuantity: 0,
+                totalCost: 0
+              });
+            }
+            const mat = materialMap.get(prodId);
+            mat.totalQuantity += material.quantity;
+            mat.totalCost += material.quantity * (material.unitCost || 0);
+          }
+        });
+      });
+
+      const topMaterials = Array.from(materialMap.values())
+        .sort((a, b) => b.totalQuantity - a.totalQuantity)
+        .slice(0, 10);
+
+      return {
+        summary: {
+          totalOrders: productionOrders.length,
+          completedOrders: completedOrders.length,
+          inProgressOrders: inProgressOrders.length,
+          pendingOrders: pendingOrders.length,
+          totalQuantity,
+          totalMaterialCost,
+          averageProductionTime: avgProductionTime,
+          period: { startDate, endDate }
+        },
+        statusDistribution: {
+          completed: completedOrders.length,
+          'in-progress': inProgressOrders.length,
+          pending: pendingOrders.length,
+          cancelled: productionOrders.filter(o => o.status === 'cancelled').length
+        },
+        topEmployees,
+        topMaterials,
+        orders: productionOrders.slice(0, 50)
+      };
+    } catch (error) {
+      console.error('Error fetching manufacturing report:', error);
+      throw error;
+    }
+  }
+
+  // Fetch CRM report data
+  async fetchCRMReport(startDate, endDate) {
+    try {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      // Get all customers
+      const customers = await Customer.find({
+        createdAt: { $gte: start, $lte: end }
+      }).sort({ createdAt: -1 });
+
+      // Get customer orders
+      const customerOrders = await SalesOrder.find({
+        orderDate: { $gte: start, $lte: end }
+      })
+        .populate('customer', 'name email company customerType')
+        .sort({ orderDate: -1 });
+
+      // Customer analytics
+      const customerMap = new Map();
+      customerOrders.forEach(order => {
+        if (order.customer) {
+          const custId = order.customer._id.toString();
+          if (!customerMap.has(custId)) {
+            customerMap.set(custId, {
+              name: order.customer.name,
+              email: order.customer.email,
+              company: order.customer.company,
+              customerType: order.customer.customerType,
+              orderCount: 0,
+              totalSpent: 0,
+              lastOrderDate: order.orderDate
+            });
+          }
+          const cust = customerMap.get(custId);
+          cust.orderCount += 1;
+          cust.totalSpent += order.total || 0;
+          if (order.orderDate > cust.lastOrderDate) {
+            cust.lastOrderDate = order.orderDate;
+          }
+        }
+      });
+
+      const topCustomers = Array.from(customerMap.values())
+        .sort((a, b) => b.totalSpent - a.totalSpent)
+        .slice(0, 10);
+
+      // Get complaints
+      const complaints = await Complaint.find({
+        createdAt: { $gte: start, $lte: end }
+      })
+        .populate('customer', 'name email')
+        .populate('assignedTo', 'employeeId')
+        .sort({ createdAt: -1 });
+
+      const complaintStats = {
+        total: complaints.length,
+        open: complaints.filter(c => c.status === 'open').length,
+        'in-progress': complaints.filter(c => c.status === 'in-progress').length,
+        resolved: complaints.filter(c => c.status === 'resolved').length,
+        closed: complaints.filter(c => c.status === 'closed').length,
+        byPriority: {
+          low: complaints.filter(c => c.priority === 'low').length,
+          medium: complaints.filter(c => c.priority === 'medium').length,
+          high: complaints.filter(c => c.priority === 'high').length,
+          urgent: complaints.filter(c => c.priority === 'urgent').length
+        },
+        byCategory: {
+          'product-quality': complaints.filter(c => c.category === 'product-quality').length,
+          delivery: complaints.filter(c => c.category === 'delivery').length,
+          billing: complaints.filter(c => c.category === 'billing').length,
+          service: complaints.filter(c => c.category === 'service').length,
+          other: complaints.filter(c => c.category === 'other').length
+        }
+      };
+
+      // Customer type distribution
+      const typeMap = new Map();
+      customers.forEach(customer => {
+        const type = customer.customerType || 'individual';
+        typeMap.set(type, (typeMap.get(type) || 0) + 1);
+      });
+
+      const customerTypeDistribution = Array.from(typeMap.entries()).map(([type, count]) => ({
+        type,
+        count
+      }));
+
+      return {
+        summary: {
+          totalCustomers: customers.length,
+          activeCustomers: customerMap.size,
+          totalComplaints: complaints.length,
+          period: { startDate, endDate }
+        },
+        topCustomers,
+        complaintStats,
+        customerTypeDistribution,
+        recentComplaints: complaints.slice(0, 20),
+        newCustomers: customers.slice(0, 20)
+      };
+    } catch (error) {
+      console.error('Error fetching CRM report:', error);
+      throw error;
+    }
+  }
+
+  // Fetch SCM report data
+  async fetchSCMReport(startDate, endDate) {
+    try {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      // Get all suppliers
+      const suppliers = await Supplier.find()
+        .populate('products', 'name sku')
+        .sort({ createdAt: -1 });
+
+      // Get purchase orders
+      const purchaseOrders = await PurchaseOrder.find({
+        orderDate: { $gte: start, $lte: end }
+      })
+        .populate('supplier', 'name contactPerson email rating')
+        .populate('items.product', 'name sku')
+        .sort({ orderDate: -1 });
+
+      // Supplier performance
+      const supplierMap = new Map();
+      purchaseOrders.forEach(order => {
+        if (order.supplier) {
+          const suppId = order.supplier._id.toString();
+          if (!supplierMap.has(suppId)) {
+            supplierMap.set(suppId, {
+              name: order.supplier.name,
+              contactPerson: order.supplier.contactPerson,
+              email: order.supplier.email,
+              rating: order.supplier.rating || 0,
+              orderCount: 0,
+              totalSpent: 0,
+              onTimeDeliveries: 0,
+              lateDeliveries: 0,
+              lastOrderDate: order.orderDate
+            });
+          }
+          const supp = supplierMap.get(suppId);
+          supp.orderCount += 1;
+          supp.totalSpent += order.total || 0;
+          
+          // Check if delivery was on time
+          if (order.expectedDeliveryDate && order.receivedDate) {
+            if (new Date(order.receivedDate) <= new Date(order.expectedDeliveryDate)) {
+              supp.onTimeDeliveries += 1;
+            } else {
+              supp.lateDeliveries += 1;
+            }
+          }
+          
+          if (order.orderDate > supp.lastOrderDate) {
+            supp.lastOrderDate = order.orderDate;
+          }
+        }
+      });
+
+      const supplierPerformance = Array.from(supplierMap.values())
+        .map(supp => ({
+          ...supp,
+          averageOrderValue: supp.orderCount > 0 ? supp.totalSpent / supp.orderCount : 0,
+          onTimeRate: supp.orderCount > 0 ? (supp.onTimeDeliveries / supp.orderCount) * 100 : 0
+        }))
+        .sort((a, b) => b.totalSpent - a.totalSpent);
+
+      // Rating distribution
+      const ratingDistribution = {
+        5: suppliers.filter(s => s.rating === 5).length,
+        4: suppliers.filter(s => s.rating === 4).length,
+        3: suppliers.filter(s => s.rating === 3).length,
+        2: suppliers.filter(s => s.rating === 2).length,
+        1: suppliers.filter(s => s.rating === 1).length,
+        0: suppliers.filter(s => !s.rating || s.rating === 0).length
+      };
+
+      // Top suppliers by spending
+      const topSuppliers = supplierPerformance.slice(0, 10);
+
+      // Supplier status
+      const activeSuppliers = suppliers.filter(s => s.isActive).length;
+      const inactiveSuppliers = suppliers.filter(s => !s.isActive).length;
+
+      return {
+        summary: {
+          totalSuppliers: suppliers.length,
+          activeSuppliers,
+          inactiveSuppliers,
+          totalOrders: purchaseOrders.length,
+          period: { startDate, endDate }
+        },
+        supplierPerformance,
+        topSuppliers,
+        ratingDistribution,
+        suppliers: suppliers.slice(0, 50)
+      };
+    } catch (error) {
+      console.error('Error fetching SCM report:', error);
+      throw error;
+    }
+  }
+
+  // Fetch HR report data
+  async fetchHRReport(startDate, endDate) {
+    try {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      // Get all employees
+      const employees = await Employee.find()
+        .populate('user', 'name email role department isActive')
+        .sort({ createdAt: -1 });
+
+      // Get attendance records
+      const attendanceRecords = await Attendance.find({
+        date: { $gte: start, $lte: end }
+      })
+        .populate('employee', 'employeeId position department')
+        .populate('employee.user', 'name email')
+        .sort({ date: -1 });
+
+      // Department distribution
+      const departmentMap = new Map();
+      employees.forEach(emp => {
+        if (emp.user && emp.user.department) {
+          const dept = emp.user.department;
+          departmentMap.set(dept, (departmentMap.get(dept) || 0) + 1);
+        }
+      });
+
+      const departmentDistribution = Array.from(departmentMap.entries()).map(([dept, count]) => ({
+        department: dept,
+        count
+      }));
+
+      // Attendance statistics
+      const attendanceStats = {
+        totalRecords: attendanceRecords.length,
+        present: attendanceRecords.filter(a => a.status === 'present').length,
+        absent: attendanceRecords.filter(a => a.status === 'absent').length,
+        late: attendanceRecords.filter(a => a.status === 'late').length,
+        onLeave: attendanceRecords.filter(a => a.status === 'on-leave').length
+      };
+
+      // Employee performance by department
+      const deptAttendanceMap = new Map();
+      attendanceRecords.forEach(record => {
+        if (record.employee && record.employee.department) {
+          const dept = record.employee.department;
+          if (!deptAttendanceMap.has(dept)) {
+            deptAttendanceMap.set(dept, {
+              present: 0,
+              absent: 0,
+              late: 0,
+              onLeave: 0,
+              totalHours: 0
+            });
+          }
+          const deptStats = deptAttendanceMap.get(dept);
+          deptStats[record.status] = (deptStats[record.status] || 0) + 1;
+          if (record.workingHours) {
+            deptStats.totalHours += record.workingHours;
+          }
+        }
+      });
+
+      const departmentAttendance = Array.from(deptAttendanceMap.entries()).map(([dept, stats]) => ({
+        department: dept,
+        ...stats,
+        attendanceRate: stats.present > 0 
+          ? (stats.present / (stats.present + stats.absent)) * 100 
+          : 0
+      }));
+
+      // New hires in period
+      const newHires = employees.filter(emp => {
+        const hireDate = new Date(emp.hireDate);
+        return hireDate >= start && hireDate <= end;
+      }).length;
+
+      // Active vs inactive
+      const activeEmployees = employees.filter(emp => 
+        emp.isActive && emp.user && emp.user.isActive
+      ).length;
+      const inactiveEmployees = employees.length - activeEmployees;
+
+      // Average salary by department
+      const salaryByDept = new Map();
+      employees.forEach(emp => {
+        if (emp.user && emp.user.department && emp.salary) {
+          const dept = emp.user.department;
+          if (!salaryByDept.has(dept)) {
+            salaryByDept.set(dept, { total: 0, count: 0 });
+          }
+          const deptSalary = salaryByDept.get(dept);
+          deptSalary.total += emp.salary;
+          deptSalary.count += 1;
+        }
+      });
+
+      const averageSalaryByDept = Array.from(salaryByDept.entries()).map(([dept, data]) => ({
+        department: dept,
+        averageSalary: data.count > 0 ? data.total / data.count : 0,
+        employeeCount: data.count
+      }));
+
+      return {
+        summary: {
+          totalEmployees: employees.length,
+          activeEmployees,
+          inactiveEmployees,
+          newHires,
+          period: { startDate, endDate }
+        },
+        departmentDistribution,
+        attendanceStats,
+        departmentAttendance,
+        averageSalaryByDept,
+        employees: employees.slice(0, 50).map(emp => ({
+          employeeId: emp.employeeId,
+          name: emp.user?.name,
+          email: emp.user?.email,
+          department: emp.department,
+          position: emp.position,
+          hireDate: emp.hireDate,
+          isActive: emp.isActive && emp.user?.isActive
+        }))
+      };
+    } catch (error) {
+      console.error('Error fetching HR report:', error);
+      throw error;
+    }
+  }
+
+  // Generate Excel workbook for sales report
+  async generateSalesExcel(reportData, startDate, endDate) {
+    const workbook = new ExcelJS.Workbook();
+    
+    // Summary Sheet
+    const summarySheet = workbook.addWorksheet('Summary');
+    summarySheet.addRow(['Sales Report Summary']);
+    summarySheet.addRow(['Period', `${startDate} to ${endDate}`]);
+    summarySheet.addRow([]);
+    summarySheet.addRow(['Total Revenue', `$${reportData.revenue?.totalRevenue?.toLocaleString() || 0}`]);
+    summarySheet.addRow(['Order Count', reportData.revenue?.orderCount || 0]);
+    summarySheet.addRow(['Average Order Value', `$${reportData.revenue?.averageOrderValue?.toFixed(2) || 0}`]);
+    summarySheet.addRow(['Active Customers', reportData.customers?.activeCustomers || 0]);
+    
+    // Orders Sheet
+    if (reportData.orders && reportData.orders.length > 0) {
+      const ordersSheet = workbook.addWorksheet('Orders');
+      ordersSheet.columns = [
+        { header: 'Order Number', key: 'orderNumber', width: 20 },
+        { header: 'Customer', key: 'customer', width: 30 },
+        { header: 'Total', key: 'total', width: 15 },
+        { header: 'Status', key: 'status', width: 15 },
+        { header: 'Order Date', key: 'orderDate', width: 15 }
+      ];
+      
+      reportData.orders.forEach(order => {
+        ordersSheet.addRow({
+          orderNumber: order.orderNumber,
+          customer: order.customer?.name || 'Unknown',
+          total: order.total,
+          status: order.status,
+          orderDate: moment(order.orderDate).format('YYYY-MM-DD')
+        });
+      });
+    }
+    
+    // Top Customers Sheet
+    if (reportData.customers?.topCustomers && reportData.customers.topCustomers.length > 0) {
+      const customersSheet = workbook.addWorksheet('Top Customers');
+      customersSheet.columns = [
+        { header: 'Customer Name', key: 'name', width: 30 },
+        { header: 'Email', key: 'email', width: 30 },
+        { header: 'Orders', key: 'orders', width: 10 },
+        { header: 'Total Spent', key: 'totalSpent', width: 15 },
+        { header: 'Last Order', key: 'lastOrder', width: 15 }
+      ];
+      
+      reportData.customers.topCustomers.forEach(customer => {
+        customersSheet.addRow({
+          name: customer.name,
+          email: customer.email,
+          orders: customer.orderCount,
+          totalSpent: customer.totalSpent,
+          lastOrder: moment(customer.lastOrderDate).format('YYYY-MM-DD')
+        });
+      });
+    }
+    
+    return workbook;
+  }
+
+  // Generate Excel workbook for purchasing report
+  async generatePurchasingExcel(reportData, startDate, endDate) {
+    const workbook = new ExcelJS.Workbook();
+    
+    // Summary Sheet
+    const summarySheet = workbook.addWorksheet('Summary');
+    summarySheet.addRow(['Purchasing Report Summary']);
+    summarySheet.addRow(['Period', `${startDate} to ${endDate}`]);
+    summarySheet.addRow([]);
+    summarySheet.addRow(['Total Spent', `$${reportData.spending?.totalSpent?.toLocaleString() || 0}`]);
+    summarySheet.addRow(['Order Count', reportData.spending?.orderCount || 0]);
+    summarySheet.addRow(['Average Order Value', `$${reportData.spending?.averageOrderValue?.toFixed(2) || 0}`]);
+    summarySheet.addRow(['Active Suppliers', reportData.suppliers?.activeSuppliers || 0]);
+    summarySheet.addRow(['Low Stock Items', reportData.lowStock?.length || 0]);
+    
+    // Orders Sheet
+    if (reportData.orders && reportData.orders.length > 0) {
+      const ordersSheet = workbook.addWorksheet('Orders');
+      ordersSheet.columns = [
+        { header: 'Order Number', key: 'orderNumber', width: 20 },
+        { header: 'Supplier', key: 'supplier', width: 30 },
+        { header: 'Total', key: 'total', width: 15 },
+        { header: 'Status', key: 'status', width: 15 },
+        { header: 'Order Date', key: 'orderDate', width: 15 },
+        { header: 'Received Date', key: 'receivedDate', width: 15 }
+      ];
+      
+      reportData.orders.forEach(order => {
+        ordersSheet.addRow({
+          orderNumber: order.orderNumber,
+          supplier: order.supplier?.name || 'Unknown',
+          total: order.total,
+          status: order.status,
+          orderDate: moment(order.orderDate).format('YYYY-MM-DD'),
+          receivedDate: order.receivedDate ? moment(order.receivedDate).format('YYYY-MM-DD') : 'N/A'
+        });
+      });
+    }
+    
+    // Top Suppliers Sheet
+    if (reportData.suppliers?.topSuppliers && reportData.suppliers.topSuppliers.length > 0) {
+      const suppliersSheet = workbook.addWorksheet('Top Suppliers');
+      suppliersSheet.columns = [
+        { header: 'Supplier Name', key: 'name', width: 30 },
+        { header: 'Orders', key: 'orders', width: 10 },
+        { header: 'Total Spent', key: 'totalSpent', width: 15 },
+        { header: 'Avg Order Value', key: 'avgOrderValue', width: 15 },
+        { header: 'Rating', key: 'rating', width: 10 }
+      ];
+      
+      reportData.suppliers.topSuppliers.forEach(supplier => {
+        suppliersSheet.addRow({
+          name: supplier.name,
+          orders: supplier.orderCount,
+          totalSpent: supplier.totalSpent,
+          avgOrderValue: supplier.averageOrderValue,
+          rating: supplier.rating || 'N/A'
+        });
+      });
+    }
+    
+    return workbook;
+  }
+
+  // Generate Excel workbook for inventory report
+  async generateInventoryExcel(reportData, startDate, endDate) {
+    const workbook = new ExcelJS.Workbook();
+    
+    // Summary Sheet
+    const summarySheet = workbook.addWorksheet('Summary');
+    summarySheet.addRow(['Inventory Report Summary']);
+    summarySheet.addRow(['Period', `${startDate} to ${endDate}`]);
+    summarySheet.addRow([]);
+    summarySheet.addRow(['Total Products', reportData.summary?.totalProducts || 0]);
+    summarySheet.addRow(['Total Inventory Value', `$${reportData.summary?.totalInventoryValue?.toLocaleString() || 0}`]);
+    summarySheet.addRow(['Low Stock Items', reportData.summary?.lowStockCount || 0]);
+    summarySheet.addRow(['Total Transactions', reportData.transactionStats?.totalTransactions || 0]);
+    
+    // Low Stock Sheet
+    if (reportData.lowStockProducts && reportData.lowStockProducts.length > 0) {
+      const lowStockSheet = workbook.addWorksheet('Low Stock');
+      lowStockSheet.columns = [
+        { header: 'Product Name', key: 'name', width: 30 },
+        { header: 'SKU', key: 'sku', width: 20 },
+        { header: 'Current Stock', key: 'currentStock', width: 15 },
+        { header: 'Min Level', key: 'minLevel', width: 15 },
+        { header: 'Max Level', key: 'maxLevel', width: 15 },
+        { header: 'Category', key: 'category', width: 20 }
+      ];
+      
+      reportData.lowStockProducts.forEach(product => {
+        lowStockSheet.addRow({
+          name: product.name,
+          sku: product.sku,
+          currentStock: product.currentStock,
+          minLevel: product.minStockLevel,
+          maxLevel: product.maxStockLevel,
+          category: product.category || 'N/A'
+        });
+      });
+    }
+    
+    // Top Products Sheet
+    if (reportData.topProductsByValue && reportData.topProductsByValue.length > 0) {
+      const topProductsSheet = workbook.addWorksheet('Top Products by Value');
+      topProductsSheet.columns = [
+        { header: 'Product Name', key: 'name', width: 30 },
+        { header: 'SKU', key: 'sku', width: 20 },
+        { header: 'Stock', key: 'stock', width: 15 },
+        { header: 'Unit Cost', key: 'unitCost', width: 15 },
+        { header: 'Total Value', key: 'totalValue', width: 15 }
+      ];
+      
+      reportData.topProductsByValue.forEach(product => {
+        topProductsSheet.addRow({
+          name: product.name,
+          sku: product.sku,
+          stock: product.stock,
+          unitCost: product.unitCost,
+          totalValue: product.totalValue
+        });
+      });
+    }
+    
+    return workbook;
+  }
+
+  // Generate Excel workbook for manufacturing report
+  async generateManufacturingExcel(reportData, startDate, endDate) {
+    const workbook = new ExcelJS.Workbook();
+    
+    // Summary Sheet
+    const summarySheet = workbook.addWorksheet('Summary');
+    summarySheet.addRow(['Manufacturing Report Summary']);
+    summarySheet.addRow(['Period', `${startDate} to ${endDate}`]);
+    summarySheet.addRow([]);
+    summarySheet.addRow(['Total Orders', reportData.summary?.totalOrders || 0]);
+    summarySheet.addRow(['Completed Orders', reportData.summary?.completedOrders || 0]);
+    summarySheet.addRow(['In Progress Orders', reportData.summary?.inProgressOrders || 0]);
+    summarySheet.addRow(['Total Quantity Produced', reportData.summary?.totalQuantity || 0]);
+    summarySheet.addRow(['Total Material Cost', `$${reportData.summary?.totalMaterialCost?.toLocaleString() || 0}`]);
+    summarySheet.addRow(['Avg Production Time', `${reportData.summary?.averageProductionTime?.toFixed(2) || 0} hours`]);
+    
+    // Top Employees Sheet
+    if (reportData.topEmployees && reportData.topEmployees.length > 0) {
+      const employeesSheet = workbook.addWorksheet('Top Employees');
+      employeesSheet.columns = [
+        { header: 'Employee ID', key: 'employeeId', width: 20 },
+        { header: 'Position', key: 'position', width: 25 },
+        { header: 'Orders Completed', key: 'ordersCompleted', width: 18 },
+        { header: 'Total Hours', key: 'totalHours', width: 15 },
+        { header: 'Avg Hours/Order', key: 'avgHours', width: 18 }
+      ];
+      
+      reportData.topEmployees.forEach(employee => {
+        employeesSheet.addRow({
+          employeeId: employee.employeeId,
+          position: employee.position,
+          ordersCompleted: employee.ordersCompleted,
+          totalHours: employee.totalHours.toFixed(2),
+          avgHours: employee.averageHoursPerOrder.toFixed(2)
+        });
+      });
+    }
+    
+    // Top Materials Sheet
+    if (reportData.topMaterials && reportData.topMaterials.length > 0) {
+      const materialsSheet = workbook.addWorksheet('Top Materials');
+      materialsSheet.columns = [
+        { header: 'Material Name', key: 'name', width: 30 },
+        { header: 'SKU', key: 'sku', width: 20 },
+        { header: 'Total Quantity', key: 'quantity', width: 15 },
+        { header: 'Total Cost', key: 'cost', width: 15 }
+      ];
+      
+      reportData.topMaterials.forEach(material => {
+        materialsSheet.addRow({
+          name: material.name,
+          sku: material.sku,
+          quantity: material.totalQuantity,
+          cost: material.totalCost
+        });
+      });
+    }
+    
+    return workbook;
+  }
+
+  // Generate Excel workbook for CRM report
+  async generateCRMExcel(reportData, startDate, endDate) {
+    const workbook = new ExcelJS.Workbook();
+    
+    // Summary Sheet
+    const summarySheet = workbook.addWorksheet('Summary');
+    summarySheet.addRow(['CRM Report Summary']);
+    summarySheet.addRow(['Period', `${startDate} to ${endDate}`]);
+    summarySheet.addRow([]);
+    summarySheet.addRow(['Total Customers', reportData.summary?.totalCustomers || 0]);
+    summarySheet.addRow(['Active Customers', reportData.summary?.activeCustomers || 0]);
+    summarySheet.addRow(['Total Complaints', reportData.summary?.totalComplaints || 0]);
+    summarySheet.addRow(['Resolved Complaints', reportData.complaintStats?.resolved || 0]);
+    
+    // Top Customers Sheet
+    if (reportData.topCustomers && reportData.topCustomers.length > 0) {
+      const customersSheet = workbook.addWorksheet('Top Customers');
+      customersSheet.columns = [
+        { header: 'Customer Name', key: 'name', width: 30 },
+        { header: 'Email', key: 'email', width: 30 },
+        { header: 'Type', key: 'type', width: 15 },
+        { header: 'Orders', key: 'orders', width: 10 },
+        { header: 'Total Spent', key: 'totalSpent', width: 15 },
+        { header: 'Last Order', key: 'lastOrder', width: 15 }
+      ];
+      
+      reportData.topCustomers.forEach(customer => {
+        customersSheet.addRow({
+          name: customer.name,
+          email: customer.email,
+          type: customer.customerType || 'individual',
+          orders: customer.orderCount,
+          totalSpent: customer.totalSpent,
+          lastOrder: moment(customer.lastOrderDate).format('YYYY-MM-DD')
+        });
+      });
+    }
+    
+    // Complaint Stats Sheet
+    if (reportData.complaintStats) {
+      const complaintsSheet = workbook.addWorksheet('Complaint Statistics');
+      complaintsSheet.addRow(['Complaint Statistics']);
+      complaintsSheet.addRow([]);
+      complaintsSheet.addRow(['Total', reportData.complaintStats.total]);
+      complaintsSheet.addRow(['Open', reportData.complaintStats.open]);
+      complaintsSheet.addRow(['In Progress', reportData.complaintStats['in-progress']]);
+      complaintsSheet.addRow(['Resolved', reportData.complaintStats.resolved]);
+      complaintsSheet.addRow(['Closed', reportData.complaintStats.closed]);
+    }
+    
+    return workbook;
+  }
+
+  // Generate Excel workbook for SCM report
+  async generateSCMExcel(reportData, startDate, endDate) {
+    const workbook = new ExcelJS.Workbook();
+    
+    // Summary Sheet
+    const summarySheet = workbook.addWorksheet('Summary');
+    summarySheet.addRow(['SCM Report Summary']);
+    summarySheet.addRow(['Period', `${startDate} to ${endDate}`]);
+    summarySheet.addRow([]);
+    summarySheet.addRow(['Total Suppliers', reportData.summary?.totalSuppliers || 0]);
+    summarySheet.addRow(['Active Suppliers', reportData.summary?.activeSuppliers || 0]);
+    summarySheet.addRow(['Inactive Suppliers', reportData.summary?.inactiveSuppliers || 0]);
+    summarySheet.addRow(['Total Orders', reportData.summary?.totalOrders || 0]);
+    
+    // Top Suppliers Sheet
+    if (reportData.topSuppliers && reportData.topSuppliers.length > 0) {
+      const suppliersSheet = workbook.addWorksheet('Top Suppliers');
+      suppliersSheet.columns = [
+        { header: 'Supplier Name', key: 'name', width: 30 },
+        { header: 'Contact Person', key: 'contact', width: 25 },
+        { header: 'Rating', key: 'rating', width: 10 },
+        { header: 'Orders', key: 'orders', width: 10 },
+        { header: 'Total Spent', key: 'totalSpent', width: 15 },
+        { header: 'On-Time Rate %', key: 'onTimeRate', width: 15 }
+      ];
+      
+      reportData.topSuppliers.forEach(supplier => {
+        suppliersSheet.addRow({
+          name: supplier.name,
+          contact: supplier.contactPerson,
+          rating: supplier.rating || 'N/A',
+          orders: supplier.orderCount,
+          totalSpent: supplier.totalSpent,
+          onTimeRate: supplier.onTimeRate.toFixed(2)
+        });
+      });
+    }
+    
+    return workbook;
+  }
+
+  // Generate Excel workbook for HR report
+  async generateHRExcel(reportData, startDate, endDate) {
+    const workbook = new ExcelJS.Workbook();
+    
+    // Summary Sheet
+    const summarySheet = workbook.addWorksheet('Summary');
+    summarySheet.addRow(['HR Report Summary']);
+    summarySheet.addRow(['Period', `${startDate} to ${endDate}`]);
+    summarySheet.addRow([]);
+    summarySheet.addRow(['Total Employees', reportData.summary?.totalEmployees || 0]);
+    summarySheet.addRow(['Active Employees', reportData.summary?.activeEmployees || 0]);
+    summarySheet.addRow(['Inactive Employees', reportData.summary?.inactiveEmployees || 0]);
+    summarySheet.addRow(['New Hires', reportData.summary?.newHires || 0]);
+    
+    // Department Distribution Sheet
+    if (reportData.departmentDistribution && reportData.departmentDistribution.length > 0) {
+      const deptSheet = workbook.addWorksheet('Department Distribution');
+      deptSheet.columns = [
+        { header: 'Department', key: 'department', width: 25 },
+        { header: 'Employee Count', key: 'count', width: 18 }
+      ];
+      
+      reportData.departmentDistribution.forEach(dept => {
+        deptSheet.addRow({
+          department: dept.department,
+          count: dept.count
+        });
+      });
+    }
+    
+    // Attendance Stats Sheet
+    if (reportData.attendanceStats) {
+      const attendanceSheet = workbook.addWorksheet('Attendance Statistics');
+      attendanceSheet.addRow(['Attendance Statistics']);
+      attendanceSheet.addRow([]);
+      attendanceSheet.addRow(['Total Records', reportData.attendanceStats.totalRecords]);
+      attendanceSheet.addRow(['Present', reportData.attendanceStats.present]);
+      attendanceSheet.addRow(['Absent', reportData.attendanceStats.absent]);
+      attendanceSheet.addRow(['Late', reportData.attendanceStats.late]);
+      attendanceSheet.addRow(['On Leave', reportData.attendanceStats.onLeave]);
+    }
+    
+    // Average Salary by Department Sheet
+    if (reportData.averageSalaryByDept && reportData.averageSalaryByDept.length > 0) {
+      const salarySheet = workbook.addWorksheet('Average Salary by Dept');
+      salarySheet.columns = [
+        { header: 'Department', key: 'department', width: 25 },
+        { header: 'Employee Count', key: 'count', width: 18 },
+        { header: 'Average Salary', key: 'salary', width: 18 }
+      ];
+      
+      reportData.averageSalaryByDept.forEach(dept => {
+        salarySheet.addRow({
+          department: dept.department,
+          count: dept.employeeCount,
+          salary: dept.averageSalary
+        });
+      });
+    }
+    
+    return workbook;
   }
 }
 

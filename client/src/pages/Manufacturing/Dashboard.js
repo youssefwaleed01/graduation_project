@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import Card from '../../components/Card';
 import {
   Factory,
   Play,
@@ -83,11 +84,11 @@ const ManufacturingDashboard = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'completed': return 'bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-400';
+      case 'in-progress': return 'bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-400';
+      case 'cancelled': return 'bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-400';
+      case 'pending': return 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-800 dark:text-yellow-400';
+      default: return 'bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-gray-300';
     }
   };
 
@@ -95,7 +96,7 @@ const ManufacturingDashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Manufacturing Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Manufacturing Dashboard</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Overview of production orders and manufacturing operations
         </p>
@@ -103,91 +104,99 @@ const ManufacturingDashboard = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Factory className="h-6 w-6 text-blue-600" />
+                <div className="bg-blue-100 dark:bg-blue-500/20 rounded-full p-3">
+                  <Factory className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Total Orders
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.totalOrders || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Clock className="h-6 w-6 text-yellow-600" />
+                <div className="bg-yellow-100 dark:bg-yellow-500/20 rounded-full p-3">
+                  <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Pending
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.pendingOrders || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Play className="h-6 w-6 text-blue-600" />
+                <div className="bg-blue-100 dark:bg-blue-500/20 rounded-full p-3">
+                  <Play className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     In Progress
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.inProgressOrders || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
           <div className="p-5">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <CheckCircle className="h-6 w-6 text-green-600" />
+                <div className="bg-green-100 dark:bg-green-500/20 rounded-full p-3">
+                  <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                     Completed
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  <dd className="text-lg font-medium text-gray-900 dark:text-white">
                     {kpis?.completedOrders || 0}
                   </dd>
                 </dl>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Completion Rate Pie Chart */}
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
-          <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
+      <Card padding={false} className="overflow-hidden">
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-slate-700">
+            <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
               Completion Rate
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -231,17 +240,18 @@ const ManufacturingDashboard = () => {
                         props.payload.name
                       ]}
                       contentStyle={{
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
+                        backgroundColor: document.documentElement.classList.contains('dark') ? '#1e293b' : '#fff',
+                        border: `1px solid ${document.documentElement.classList.contains('dark') ? '#334155' : '#e5e7eb'}`,
                         borderRadius: '8px',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        color: document.documentElement.classList.contains('dark') ? '#fff' : '#000'
                       }}
                     />
                     <Legend 
                       verticalAlign="bottom" 
                       height={36}
                       formatter={(value, entry) => (
-                        <span style={{ color: entry.color }}>
+                        <span style={{ color: document.documentElement.classList.contains('dark') ? '#cbd5e1' : entry.color }}>
                           {value}
                         </span>
                       )}
@@ -249,22 +259,22 @@ const ManufacturingDashboard = () => {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex items-center justify-center h-full text-gray-500">
+                <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
                   No production data available
                 </div>
               )}
             </div>
           </div>
-      </div>
+      </Card>
 
       {/* Recent Orders */}
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
+      <Card padding={false} className="overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-slate-700">
+          <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
             Recent Production Orders
           </h3>
         </div>
-        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+        <ul className="divide-y divide-gray-200 dark:divide-slate-700">
           {recentOrders.length === 0 ? (
             <li className="px-4 py-5 sm:px-6">
               <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
@@ -273,7 +283,7 @@ const ManufacturingDashboard = () => {
             </li>
           ) : (
             recentOrders.map((order) => (
-              <li key={order._id} className="px-4 py-4">
+              <li key={order._id} className="px-4 py-4 hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
@@ -281,7 +291,7 @@ const ManufacturingDashboard = () => {
                     </div>
                     <div className="ml-4">
                       <div className="flex items-center">
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
                           {order.orderNumber}
                         </p>
                       </div>
@@ -308,7 +318,7 @@ const ManufacturingDashboard = () => {
             ))
           )}
         </ul>
-      </div>
+      </Card>
     </div>
   );
 };

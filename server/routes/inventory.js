@@ -16,10 +16,31 @@ const router = express.Router();
 router.get('/products', protect, async (req, res) => {
   try {
     const { category, lowStock } = req.query;
-    let query = {};
+    let query = { isActive: true };
 
     if (category) {
-      query.category = category;
+      // Handle category migration: fetch both old and new category names
+      if (category === 'final-product') {
+        // Fetch both 'finished-good' (old) and 'final-product' (new)
+        query.category = { $in: ['finished-good', 'final-product'] };
+        
+        // Optionally update old products to new category in background
+        Product.updateMany(
+          { category: 'finished-good' },
+          { $set: { category: 'final-product' } }
+        ).catch(err => console.error('Error updating category:', err));
+      } else if (category === 'others') {
+        // Fetch both 'component' (old) and 'others' (new)
+        query.category = { $in: ['component', 'others'] };
+        
+        // Optionally update old products to new category in background
+        Product.updateMany(
+          { category: 'component' },
+          { $set: { category: 'others' } }
+        ).catch(err => console.error('Error updating category:', err));
+      } else {
+        query.category = category;
+      }
     }
 
     if (lowStock === 'true') {
@@ -52,7 +73,7 @@ router.post('/products', [
   authorize('admin', 'manager'),
   body('name').notEmpty().withMessage('Product name is required'),
   body('sku').notEmpty().withMessage('SKU is required'),
-  body('category').isIn(['raw-material', 'finished-good', 'component']).withMessage('Valid category is required'),
+  body('category').isIn(['raw-material', 'final-product', 'others']).withMessage('Valid category is required'),
   body('unit').notEmpty().withMessage('Unit is required'),
   body('unitCost').isNumeric().withMessage('Valid unit cost is required')
 ], async (req, res) => {

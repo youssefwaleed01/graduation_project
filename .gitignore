@@ -5,14 +5,7 @@ server/node_modules/
 package-lock.json
 yarn.lock
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-server/config.env
-*.env
+
 
 # Build outputs
 client/build/
@@ -33,7 +26,6 @@ lerna-debug.log*
 # Runtime data
 pids/
 *.pid
-*.seed
 *.pid.lock
 
 # Coverage directory used by tools like istanbul
@@ -122,13 +114,6 @@ local/
 *.backup
 *~
 
-# React specific
-client/.env.local
-client/.env.development.local
-client/.env.test.local
-client/.env.production.local
 
-# Server specific
-server/.env
-server/.env.local
+# Note: Script files like server/scripts/seed.js are NOT ignored and will be included in the repository
 

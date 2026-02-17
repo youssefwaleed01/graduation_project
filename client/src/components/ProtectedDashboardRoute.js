@@ -35,7 +35,8 @@ const ProtectedDashboardRoute = ({ children, module, fallbackPath = '/app/login'
       'Inventory': '/app/inventory/products',
       'Manufacturing': '/app/manufacturing/orders',
       'CRM': '/app/crm/customers',
-      'SCM': '/app/scm/suppliers'
+      'SCM': '/app/scm/suppliers',
+      'Finance': '/app/finance/transactions'
     };
     
     const redirectPath = departmentMap[user?.department] || fallbackPath;

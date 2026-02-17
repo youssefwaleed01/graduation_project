@@ -14,13 +14,17 @@ import HRDashboard from './pages/HR/Dashboard';
 import HREmployees from './pages/HR/Employees';
 import HRAttendance from './pages/HR/Attendance';
 import HRAttendanceReport from './pages/HR/AttendanceReport';
+import HRReports from './pages/HR/Reports';
 import ManufacturingDashboard from './pages/Manufacturing/Dashboard';
 import ManufacturingOrders from './pages/Manufacturing/Orders';
+import ManufacturingReports from './pages/Manufacturing/Reports';
 import SCMDashboard from './pages/SCM/Dashboard';
 import SCMSuppliers from './pages/SCM/Suppliers';
+import SCMReports from './pages/SCM/Reports';
 import CRMDashboard from './pages/CRM/Dashboard';
 import CRMCustomers from './pages/CRM/Customers';
 import CRMComplaints from './pages/CRM/Complaints';
+import CRMReports from './pages/CRM/Reports';
 import SalesDashboard from './pages/Sales/Dashboard';
 import SalesOrders from './pages/Sales/Orders';
 import SalesReports from './pages/Sales/Reports';
@@ -28,9 +32,16 @@ import InventoryDashboard from './pages/Inventory/Dashboard';
 import InventoryProducts from './pages/Inventory/Products';
 import RawMaterials from './pages/Inventory/RawMaterials';
 import FinishedProducts from './pages/Inventory/FinishedProducts';
+import Others from './pages/Inventory/Others';
+import InventoryReports from './pages/Inventory/Reports';
 import PurchasingDashboard from './pages/Purchasing/Dashboard';
 import PurchasingOrders from './pages/Purchasing/Orders';
 import PurchasingReports from './pages/Purchasing/Reports';
+import FinanceDashboard from './pages/Finance/Dashboard';
+import FinanceTransactions from './pages/Finance/Transactions';
+import FinanceBank from './pages/Finance/Bank';
+import FinanceExpenses from './pages/Finance/Expenses';
+import FinanceBankAccounts from './pages/Finance/BankAccounts';
 
 // Conditional Attendance Route Component
 const ConditionalAttendanceRoute = ({ module, children }) => {
@@ -65,7 +76,7 @@ const ConditionalAttendanceRoute = ({ module, children }) => {
       'Inventory': '/app/inventory/products',
       'Manufacturing': '/app/manufacturing/orders',
       'CRM': '/app/crm/customers',
-      'SCM': '/app/scm/suppliers'
+      'SCM': '/app/scm/suppliers',
     };
     const redirectPath = employeeDepartmentMap[user?.department] || '/app/login';
     return <Navigate to={redirectPath} replace />;
@@ -91,7 +102,7 @@ const DashboardRedirect = () => {
       'Inventory': '/app/inventory/dashboard',
       'Manufacturing': '/app/manufacturing/dashboard',
       'CRM': '/app/crm/dashboard',
-      'SCM': '/app/scm/dashboard'
+      'SCM': '/app/scm/dashboard',
     };
     const redirectPath = managerDepartmentMap[user?.department] || '/app/login';
     return <Navigate to={redirectPath} replace />;
@@ -105,7 +116,8 @@ const DashboardRedirect = () => {
     'Inventory': '/app/inventory/products',
     'Manufacturing': '/app/manufacturing/orders',
     'CRM': '/app/crm/customers',
-    'SCM': '/app/scm/suppliers'
+    'SCM': '/app/scm/suppliers',
+    'Finance': '/app/finance/transactions'
   };
   const redirectPath = employeeDepartmentMap[user?.department] || '/app/login';
   return <Navigate to={redirectPath} replace />;
@@ -156,6 +168,11 @@ function App() {
                   <HRAttendanceReport />
                 </ProtectedModuleRoute>
               } />
+              <Route path="hr/reports" element={
+                <ProtectedModuleRoute module="hr">
+                  <HRReports />
+                </ProtectedModuleRoute>
+              } />
               
               {/* Manufacturing Routes - Only for Manufacturing department and admins */}
               <Route path="manufacturing/dashboard" element={
@@ -175,6 +192,11 @@ function App() {
                   </ProtectedModuleRoute>
                 </ConditionalAttendanceRoute>
               } />
+              <Route path="manufacturing/reports" element={
+                <ProtectedModuleRoute module="manufacturing">
+                  <ManufacturingReports />
+                </ProtectedModuleRoute>
+              } />
               
               {/* SCM Routes - Only for Purchasing department and admins */}
               <Route path="scm/dashboard" element={
@@ -193,6 +215,11 @@ function App() {
                     <HRAttendance />
                   </ProtectedModuleRoute>
                 </ConditionalAttendanceRoute>
+              } />
+              <Route path="scm/reports" element={
+                <ProtectedModuleRoute module="scm">
+                  <SCMReports />
+                </ProtectedModuleRoute>
               } />
               
               {/* CRM Routes - Only for Sales department and admins */}
@@ -217,6 +244,11 @@ function App() {
                     <HRAttendance />
                   </ProtectedModuleRoute>
                 </ConditionalAttendanceRoute>
+              } />
+              <Route path="crm/reports" element={
+                <ProtectedModuleRoute module="crm">
+                  <CRMReports />
+                </ProtectedModuleRoute>
               } />
               
               {/* Sales Routes - Only for Sales department and admins */}
@@ -264,12 +296,22 @@ function App() {
                   <FinishedProducts />
                 </ProtectedModuleRoute>
               } />
+              <Route path="inventory/others" element={
+                <ProtectedModuleRoute module="inventory">
+                  <Others />
+                </ProtectedModuleRoute>
+              } />
               <Route path="inventory/attendance" element={
                 <ConditionalAttendanceRoute module="inventory">
                   <ProtectedModuleRoute module="attendance">
                     <HRAttendance />
                   </ProtectedModuleRoute>
                 </ConditionalAttendanceRoute>
+              } />
+              <Route path="inventory/reports" element={
+                <ProtectedModuleRoute module="inventory">
+                  <InventoryReports />
+                </ProtectedModuleRoute>
               } />
               
               {/* Purchasing Routes - Only for Purchasing department and admins */}
@@ -294,6 +336,40 @@ function App() {
                     <HRAttendance />
                   </ProtectedModuleRoute>
                 </ConditionalAttendanceRoute>
+              } />
+              
+              {/* Finance Routes */}
+              <Route path="finance/dashboard" element={
+                <ProtectedDashboardRoute module="finance">
+                  <FinanceDashboard />
+                </ProtectedDashboardRoute>
+              } />
+              <Route path="finance/transactions" element={
+                <ProtectedModuleRoute module="finance">
+                  <FinanceTransactions />
+                </ProtectedModuleRoute>
+              } />
+              <Route path="finance/bank" element={
+                <ProtectedModuleRoute module="finance">
+                  <FinanceBank />
+                </ProtectedModuleRoute>
+              } />
+              <Route path="finance/expenses" element={
+                <ProtectedModuleRoute module="finance">
+                  <FinanceExpenses />
+                </ProtectedModuleRoute>
+              } />
+              <Route path="finance/attendance" element={
+                <ConditionalAttendanceRoute module="finance">
+                  <ProtectedModuleRoute module="attendance">
+                    <HRAttendance />
+                  </ProtectedModuleRoute>
+                </ConditionalAttendanceRoute>
+              } />
+              <Route path="finance/bank-accounts" element={
+                <ProtectedModuleRoute module="finance">
+                  <FinanceBankAccounts />
+                </ProtectedModuleRoute>
               } />
             </Route>
           </Routes>

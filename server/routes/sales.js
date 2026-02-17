@@ -319,7 +319,7 @@ router.put('/orders/:id/confirm', [
     const needsProduction = [];
     for (const item of salesOrder.items) {
       const product = await Product.findById(item.product);
-      if (product.category === 'finished-good' && product.currentStock < item.quantity) {
+      if (product.category === 'final-product' && product.currentStock < item.quantity) {
         needsProduction.push({
           product: item.product,
           quantity: item.quantity
@@ -756,6 +756,45 @@ router.get('/invoices/:orderId', protect, async (req, res) => {
     });
   } catch (error) {
     console.error('Get invoice error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   PUT /api/sales/invoices/:id/mark-paid
+// @desc    Mark sales invoice as paid
+// @access  Private
+router.put('/invoices/:id/mark-paid', protect, async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id);
+
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        message: 'Invoice not found'
+      });
+    }
+
+    if (invoice.status === 'paid') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invoice is already marked as paid'
+      });
+    }
+
+    // Update invoice status
+    invoice.status = 'paid';
+    await invoice.save();
+
+    res.json({
+      success: true,
+      message: 'Invoice marked as paid',
+      data: invoice
+    });
+  } catch (error) {
+    console.error('Mark invoice paid error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

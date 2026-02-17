@@ -29,6 +29,7 @@ app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/purchasing', require('./routes/purchasing'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/finance', require('./routes/finance'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

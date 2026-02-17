@@ -26,10 +26,12 @@ const FinishedProducts = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('/api/inventory/products?category=finished-good');
-      setProducts(response.data.data);
+      const response = await axios.get('/api/inventory/products?category=final-product');
+      setProducts(response.data.data || []);
+      console.log('✅ Final Products fetched:', response.data.data?.length || 0);
     } catch (error) {
-      toast.error('Failed to fetch finished products');
+      console.error('❌ Failed to fetch final products:', error);
+      toast.error(error.response?.data?.message || 'Failed to fetch final products');
     } finally {
       setLoading(false);
     }
@@ -44,7 +46,7 @@ const FinishedProducts = () => {
       } else {
         await axios.post('/api/inventory/products', {
           ...formData,
-          category: 'finished-good'
+          category: 'final-product'
         });
         toast.success('Finished product created successfully');
       }
@@ -124,9 +126,9 @@ const FinishedProducts = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Finished Products</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Final Products</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Manage finished goods inventory and pricing
+            Manage final products inventory and pricing
           </p>
         </div>
         <button
@@ -134,7 +136,7 @@ const FinishedProducts = () => {
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Add Finished Product
+          Add Final Product
         </button>
       </div>
 
@@ -244,7 +246,7 @@ const FinishedProducts = () => {
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
-                {editingProduct ? 'Edit Finished Product' : 'Add Finished Product'}
+                {editingProduct ? 'Edit Final Product' : 'Add Final Product'}
               </h3>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>

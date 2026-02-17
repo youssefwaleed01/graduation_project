@@ -17,7 +17,7 @@ const employeeSchema = new mongoose.Schema({
   },
   department: {
     type: String,
-    enum: ['HR', 'Manufacturing', 'SCM', 'CRM', 'Sales', 'Inventory', 'Purchasing'],
+    enum: ['HR', 'Manufacturing', 'SCM', 'CRM', 'Sales', 'Inventory', 'Purchasing', 'Finance'],
     required: true
   },
   hireDate: {

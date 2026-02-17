@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { User, Lock, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -29,7 +31,7 @@ const Login = () => {
     try {
       const result = await login(formData.email, formData.password);
       if (result.success) {
-        toast.success('Login successful!');
+        toast.success(t('messages.loginSuccess'));
         
         // Redirect based on user role and department
         const user = result.user;
@@ -44,7 +46,8 @@ const Login = () => {
             'Inventory': '/app/inventory/dashboard',
             'Manufacturing': '/app/manufacturing/dashboard',
             'CRM': '/app/crm/dashboard',
-            'SCM': '/app/scm/dashboard'
+            'SCM': '/app/scm/dashboard',
+            'Finance': '/app/finance/dashboard'
           };
           navigate(managerDepartmentMap[user?.department] || '/app/login');
         } else {
@@ -56,15 +59,16 @@ const Login = () => {
             'Inventory': '/app/inventory/products',
             'Manufacturing': '/app/manufacturing/orders',
             'CRM': '/app/crm/customers',
-            'SCM': '/app/scm/suppliers'
+            'SCM': '/app/scm/suppliers',
+            'Finance': '/app/finance/transactions'
           };
           navigate(employeeDepartmentMap[user?.department] || '/app/login');
         }
       } else {
-        toast.error(result.message);
+        toast.error(result.message || t('messages.loginError'));
       }
     } catch (error) {
-      toast.error('An error occurred during login');
+      toast.error(t('messages.error'));
     } finally {
       setLoading(false);
     }
@@ -78,10 +82,10 @@ const Login = () => {
             <User className="h-6 w-6 text-primary-600" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            MTI-ERP System Login
+            {t('auth.systemLogin')}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Sign in to your account
+            {t('auth.signInToAccount')}
           </p>
         </div>
         
@@ -89,7 +93,7 @@ const Login = () => {
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
-                Email address
+                {t('auth.emailAddress')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -102,7 +106,7 @@ const Login = () => {
                   autoComplete="email"
                   required
                   className="appearance-none rounded-none relative block w-full px-10 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                  placeholder="Email address"
+                  placeholder={t('auth.emailAddress')}
                   value={formData.email}
                   onChange={handleChange}
                 />
@@ -110,7 +114,7 @@ const Login = () => {
             </div>
             <div>
               <label htmlFor="password" className="sr-only">
-                Password
+                {t('auth.password')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -123,7 +127,7 @@ const Login = () => {
                   autoComplete="current-password"
                   required
                   className="appearance-none rounded-none relative block w-full px-10 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                  placeholder="Password"
+                  placeholder={t('auth.password')}
                   value={formData.password}
                   onChange={handleChange}
                 />
@@ -150,7 +154,7 @@ const Login = () => {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? t('auth.signingIn') : t('auth.loginButton')}
             </button>
           </div>
         </form>

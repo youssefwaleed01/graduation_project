@@ -94,6 +94,21 @@ router.get('/generate/:type', [
       case 'purchasing':
         reportData = await reportService.fetchPurchasingReport(startDate, endDate);
         break;
+      case 'inventory':
+        reportData = await reportService.fetchInventoryReport(startDate, endDate);
+        break;
+      case 'manufacturing':
+        reportData = await reportService.fetchManufacturingReport(startDate, endDate);
+        break;
+      case 'crm':
+        reportData = await reportService.fetchCRMReport(startDate, endDate);
+        break;
+      case 'scm':
+        reportData = await reportService.fetchSCMReport(startDate, endDate);
+        break;
+      case 'hr':
+        reportData = await reportService.fetchHRReport(startDate, endDate);
+        break;
       case 'combined':
         const salesData = await reportService.fetchSalesReport(startDate, endDate);
         const purchasingData = await reportService.fetchPurchasingReport(startDate, endDate);
@@ -102,7 +117,7 @@ router.get('/generate/:type', [
       default:
         return res.status(400).json({
           success: false,
-          message: 'Invalid report type. Use: sales, purchasing, or combined'
+          message: 'Invalid report type. Use: sales, purchasing, inventory, manufacturing, crm, scm, hr, or combined'
         });
     }
 
@@ -119,13 +134,105 @@ router.get('/generate/:type', [
   }
 });
 
+// @route   GET /api/reports/export/:type
+// @desc    Export report data to Excel
+// @access  Private (Manager, Admin)
+router.get('/export/:type', [
+  protect,
+  authorize('admin', 'manager')
+], async (req, res) => {
+  try {
+    const { type } = req.params;
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Start date and end date are required'
+      });
+    }
+
+    // Fetch report data
+    let reportData;
+    switch (type) {
+      case 'sales':
+        reportData = await reportService.fetchSalesReport(startDate, endDate);
+        break;
+      case 'purchasing':
+        reportData = await reportService.fetchPurchasingReport(startDate, endDate);
+        break;
+      case 'inventory':
+        reportData = await reportService.fetchInventoryReport(startDate, endDate);
+        break;
+      case 'manufacturing':
+        reportData = await reportService.fetchManufacturingReport(startDate, endDate);
+        break;
+      case 'crm':
+        reportData = await reportService.fetchCRMReport(startDate, endDate);
+        break;
+      case 'scm':
+        reportData = await reportService.fetchSCMReport(startDate, endDate);
+        break;
+      case 'hr':
+        reportData = await reportService.fetchHRReport(startDate, endDate);
+        break;
+      default:
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid report type. Use: sales, purchasing, inventory, manufacturing, crm, scm, or hr'
+        });
+    }
+
+    // Generate Excel workbook
+    let workbook;
+    switch (type) {
+      case 'sales':
+        workbook = await reportService.generateSalesExcel(reportData, startDate, endDate);
+        break;
+      case 'purchasing':
+        workbook = await reportService.generatePurchasingExcel(reportData, startDate, endDate);
+        break;
+      case 'inventory':
+        workbook = await reportService.generateInventoryExcel(reportData, startDate, endDate);
+        break;
+      case 'manufacturing':
+        workbook = await reportService.generateManufacturingExcel(reportData, startDate, endDate);
+        break;
+      case 'crm':
+        workbook = await reportService.generateCRMExcel(reportData, startDate, endDate);
+        break;
+      case 'scm':
+        workbook = await reportService.generateSCMExcel(reportData, startDate, endDate);
+        break;
+      case 'hr':
+        workbook = await reportService.generateHRExcel(reportData, startDate, endDate);
+        break;
+    }
+
+    // Set response headers
+    const filename = `${type}-report-${startDate}-to-${endDate}.xlsx`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // Write workbook to response
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('Export report error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export report'
+    });
+  }
+});
+
 // @route   POST /api/reports/send
 // @desc    Send report to module manager via email
 // @access  Private (Manager, Admin)
 router.post('/send', [
   protect,
   authorize('admin', 'manager'),
-  body('module').isIn(['sales', 'purchasing']).withMessage('Module must be "sales" or "purchasing"'),
+  body('module').isIn(['sales', 'purchasing', 'inventory', 'manufacturing', 'crm', 'scm', 'hr']).withMessage('Module must be one of: sales, purchasing, inventory, manufacturing, crm, scm, hr'),
   body('reportData').isArray().withMessage('reportData must be an array'),
   body('reportData').custom((value) => {
     if (!Array.isArray(value) || value.length === 0) {

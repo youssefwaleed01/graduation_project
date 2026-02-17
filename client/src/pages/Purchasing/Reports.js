@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import Card from '../../components/Card';
 import { 
   DollarSign, 
   ShoppingBag, 
@@ -66,24 +67,24 @@ const PurchasingReports = () => {
     }));
   };
 
-  const exportReport = async (type) => {
+  const exportReport = async () => {
     try {
-      const response = await axios.get(`/api/purchasing/export/${type}?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`, {
+      const response = await axios.get(`/api/reports/export/purchasing?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`, {
         responseType: 'blob'
       });
       
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${type}-report-${dateRange.startDate}-to-${dateRange.endDate}.csv`);
+      link.setAttribute('download', `purchasing-report-${dateRange.startDate}-to-${dateRange.endDate}.xlsx`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
       
-      toast.success(`${type} report exported successfully`);
+      toast.success('Purchasing report exported successfully');
     } catch (error) {
-      toast.error(`Failed to export ${type} report`);
+      toast.error('Failed to export purchasing report');
     }
   };
 
@@ -160,22 +161,24 @@ const PurchasingReports = () => {
 
 
   const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
-    <div className="bg-white overflow-hidden shadow rounded-lg">
+    <Card className="dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900">
       <div className="p-5">
         <div className="flex items-center">
           <div className="flex-shrink-0">
-            <Icon className={`h-6 w-6 ${color}`} />
+            <div className={`p-3 rounded-md ${color.includes('red') ? 'bg-red-100 dark:bg-red-500/20' : color.includes('blue') ? 'bg-blue-100 dark:bg-blue-500/20' : color.includes('purple') ? 'bg-purple-100 dark:bg-purple-500/20' : 'bg-orange-100 dark:bg-orange-500/20'}`}>
+              <Icon className={`h-6 w-6 ${color}`} />
+            </div>
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
-              <dt className="text-sm font-medium text-gray-500 truncate">{title}</dt>
-              <dd className="text-lg font-medium text-gray-900">{value}</dd>
-              {subtitle && <dd className="text-sm text-gray-500">{subtitle}</dd>}
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">{title}</dt>
+              <dd className="text-lg font-medium text-gray-900 dark:text-white">{value}</dd>
+              {subtitle && <dd className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</dd>}
             </dl>
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 
   if (loading) {
@@ -191,15 +194,15 @@ const PurchasingReports = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Purchasing Reports</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Purchasing Reports</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Comprehensive purchasing analytics and spending insights
           </p>
         </div>
         <div className="flex space-x-3">
           <button
             onClick={() => fetchAllReports()}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-slate-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
@@ -207,14 +210,14 @@ const PurchasingReports = () => {
           <button
             onClick={sendReport}
             disabled={sendLoading}
-            className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+            className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 disabled:opacity-50 transition-colors"
           >
             <Mail className="h-4 w-4 mr-2" />
             {sendLoading ? 'Sending...' : 'Send Report'}
           </button>
           <button
-            onClick={() => exportReport('purchasing')}
-            className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700"
+            onClick={exportReport}
+            className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 transition-colors"
           >
             <Download className="h-4 w-4 mr-2" />
             Export Report
@@ -223,31 +226,31 @@ const PurchasingReports = () => {
       </div>
 
       {/* Date Range Filter */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <Card>
         <div className="flex items-center space-x-4">
-          <Filter className="h-5 w-5 text-gray-400" />
+          <Filter className="h-5 w-5 text-gray-400 dark:text-gray-500" />
           <div className="flex space-x-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Start Date</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
               <input
                 type="date"
                 value={dateRange.startDate}
                 onChange={(e) => handleDateRangeChange('startDate', e.target.value)}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                className="mt-1 block w-full border border-gray-300 dark:border-slate-600 rounded-md shadow-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 transition-colors"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">End Date</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
               <input
                 type="date"
                 value={dateRange.endDate}
                 onChange={(e) => handleDateRangeChange('endDate', e.target.value)}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                className="mt-1 block w-full border border-gray-300 dark:border-slate-600 rounded-md shadow-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 transition-colors"
               />
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -283,146 +286,146 @@ const PurchasingReports = () => {
 
       {/* Low Stock Alerts */}
       {reports.lowStock && reports.lowStock.length > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+        <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800">
           <div className="flex items-center">
-            <AlertTriangle className="h-5 w-5 text-orange-400 mr-2" />
-            <h3 className="text-lg font-medium text-orange-800">Low Stock Alerts</h3>
+            <AlertTriangle className="h-5 w-5 text-orange-400 dark:text-orange-500 mr-2" />
+            <h3 className="text-lg font-medium text-orange-800 dark:text-orange-300">Low Stock Alerts</h3>
           </div>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {reports.lowStock.map((item, index) => (
-              <div key={index} className="bg-white rounded-lg p-4 border border-orange-200">
+              <div key={index} className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{item.product.name}</p>
-                    <p className="text-xs text-gray-500">SKU: {item.product.sku}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{item.product.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">SKU: {item.product.sku}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium text-orange-600">
+                    <p className="text-sm font-medium text-orange-600 dark:text-orange-400">
                       {item.product.currentStock} / {item.product.minStockLevel}
                     </p>
-                    <p className="text-xs text-gray-500">Current / Min</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Current / Min</p>
                   </div>
                 </div>
                 <div className="mt-2">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Suggested Qty: {item.suggestedQuantity}
                   </p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Top Suppliers */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+      <Card padding={false} className="overflow-hidden">
+        <div className="px-4 py-5 sm:p-6 border-b border-gray-200 dark:border-slate-700">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
             Top Suppliers
           </h3>
-          {reports.suppliers?.topSuppliers && (
-            <div className="overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Supplier
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Orders
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Spent
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Avg Order Value
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Last Order
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {reports.suppliers.topSuppliers.map((supplier, index) => (
-                    <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {supplier.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {supplier.orderCount}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${supplier.totalSpent.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${supplier.averageOrderValue.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(supplier.lastOrderDate).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
         </div>
-      </div>
+        {reports.suppliers?.topSuppliers && (
+          <div className="overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+              <thead className="bg-gray-50 dark:bg-slate-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Supplier
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Orders
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Total Spent
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Avg Order Value
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Last Order
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
+                {reports.suppliers.topSuppliers.map((supplier, index) => (
+                  <tr key={index} className="hover:bg-gray-50 dark:hover:bg-slate-700/40">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      {supplier.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {supplier.orderCount}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      ${supplier.totalSpent.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      ${supplier.averageOrderValue.toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {new Date(supplier.lastOrderDate).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
 
       {/* Top Purchased Products */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+      <Card padding={false} className="overflow-hidden">
+        <div className="px-4 py-5 sm:p-6 border-b border-gray-200 dark:border-slate-700">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
             Most Purchased Products
           </h3>
-          {reports.products?.topProducts && (
-            <div className="overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Product
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Quantity Purchased
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Cost
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Avg Unit Cost
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Supplier
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {reports.products.topProducts.map((product, index) => (
-                    <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {product.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.quantityPurchased}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${product.totalCost.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${product.averageUnitCost.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.supplier}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
         </div>
-      </div>
+        {reports.products?.topProducts && (
+          <div className="overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+              <thead className="bg-gray-50 dark:bg-slate-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Product
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Quantity Purchased
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Total Cost
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Avg Unit Cost
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Supplier
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
+                {reports.products.topProducts.map((product, index) => (
+                  <tr key={index} className="hover:bg-gray-50 dark:hover:bg-slate-700/40">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      {product.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {product.quantityPurchased}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      ${product.totalCost.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      ${product.averageUnitCost.toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {product.supplier}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
     </div>
   );
 };

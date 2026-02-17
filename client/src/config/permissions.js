@@ -9,7 +9,8 @@ export const PERMISSIONS = {
     INVENTORY: 'inventory',
     MANUFACTURING: 'manufacturing',
     CRM: 'crm',
-    SCM: 'scm'
+    SCM: 'scm',
+    FINANCE: 'finance',
   },
 
   // Department-based module mapping
@@ -21,7 +22,8 @@ export const PERMISSIONS = {
     'Manufacturing': ['manufacturing', 'attendance'],
     'CRM': ['crm', 'attendance'],
     'SCM': ['scm', 'attendance'],
-    'Admin': ['dashboard', 'hr', 'sales', 'purchasing', 'inventory', 'manufacturing', 'crm', 'scm', 'attendance']
+    'Finance': ['finance', 'attendance'],
+    'Admin': ['dashboard', 'hr', 'sales', 'purchasing', 'inventory', 'manufacturing', 'crm', 'scm', 'finance', 'attendance']
   },
 
   // Module dashboard access permissions
@@ -32,7 +34,8 @@ export const PERMISSIONS = {
     'inventory': ['admin', 'Inventory-manager'],
     'manufacturing': ['admin', 'Manufacturing-manager'],
     'crm': ['admin', 'CRM-manager'],
-    'scm': ['admin', 'SCM-manager']
+    'scm': ['admin', 'SCM-manager'],
+    'finance': ['admin', 'Finance-manager'],
   },
 
   // Special permissions for attendance
@@ -93,12 +96,23 @@ export const getUserAllowedModules = (user) => {
 
   // Admin has access to all modules (but attendance only in HR context)
   if (user.role === 'admin') {
-    return ['dashboard', 'hr', 'sales', 'purchasing', 'inventory', 'manufacturing', 'crm', 'scm'];
+    return ['dashboard', 'hr', 'sales', 'purchasing', 'inventory', 'manufacturing', 'crm', 'scm', 'finance'];
   }
 
   // Managers have access to their department module + attendance (NO main dashboard access)
   if (user.role === 'manager') {
-    const departmentModules = PERMISSIONS.DEPARTMENT_MODULES[user.department] || [];
+    // Handle case-insensitive department matching
+    const departmentKey = Object.keys(PERMISSIONS.DEPARTMENT_MODULES).find(
+      key => key.toLowerCase() === (user.department || '').toLowerCase()
+    ) || user.department;
+    
+    const departmentModules = PERMISSIONS.DEPARTMENT_MODULES[departmentKey] || [];
+    
+    // Fallback: if department is Finance but modules not found, return finance modules
+    if ((user.department === 'Finance' || user.department?.toLowerCase() === 'finance') && departmentModules.length === 0) {
+      return ['finance', 'attendance'];
+    }
+    
     return departmentModules;
   }
 
@@ -140,7 +154,8 @@ export const canAccessDashboardRoute = (user, module) => {
     'inventory': 'Inventory',
     'manufacturing': 'Manufacturing',
     'crm': 'CRM',
-    'scm': 'SCM'
+    'scm': 'SCM',
+    'finance': 'Finance'
   };
   
   const requiredDepartment = departmentMap[module];
@@ -267,7 +282,8 @@ export const canAccessModuleDashboard = (user, module) => {
     'inventory': 'Inventory',
     'manufacturing': 'Manufacturing',
     'crm': 'CRM',
-    'scm': 'SCM'
+    'scm': 'SCM',
+    'finance': 'Finance',
   };
   
   const requiredDepartment = departmentMap[module];
@@ -282,7 +298,8 @@ export const MODULE_NAMES = {
   purchasing: 'Purchasing',
   inventory: 'Inventory',
   manufacturing: 'Manufacturing',
-  crm: 'Customer Relations',
-  scm: 'Supply Chain',
-  attendance: 'Attendance'
-};
+    crm: 'Customer Relations',
+    scm: 'Supply Chain',
+    finance: 'Finance',
+    attendance: 'Attendance'
+  };

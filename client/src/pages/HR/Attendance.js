@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import Card from '../../components/Card';
 import { Clock, CheckCircle, XCircle, AlertCircle, Users, Filter } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { canCheckInOut, canViewAllAttendanceRecords, canManageEmployees } from '../../config/permissions';
@@ -356,19 +357,19 @@ const Attendance = () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'present': return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'absent': return <XCircle className="h-5 w-5 text-red-500" />;
-      case 'late': return <AlertCircle className="h-5 w-5 text-yellow-500" />;
-      default: return <Clock className="h-5 w-5 text-gray-500" />;
+      case 'present': return <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />;
+      case 'absent': return <XCircle className="h-5 w-5 text-red-500 dark:text-red-400" />;
+      case 'late': return <AlertCircle className="h-5 w-5 text-yellow-500 dark:text-yellow-400" />;
+      default: return <Clock className="h-5 w-5 text-gray-500 dark:text-gray-400" />;
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'present': return 'bg-green-100 text-green-800';
-      case 'absent': return 'bg-red-100 text-red-800';
-      case 'late': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'present': return 'bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-400';
+      case 'absent': return 'bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-400';
+      case 'late': return 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-800 dark:text-yellow-400';
+      default: return 'bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-gray-300';
     }
   };
 
@@ -385,7 +386,7 @@ const Attendance = () => {
   if (!user) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">Please log in to view attendance.</p>
+        <p className="text-gray-500 dark:text-gray-400">Please log in to view attendance.</p>
       </div>
     );
   }
@@ -394,8 +395,8 @@ const Attendance = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Attendance</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Attendance</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {canViewAllAttendanceRecords(user) 
             ? 'Track all employee attendance and working hours' 
             : 'Track your attendance and working hours'
@@ -405,24 +406,24 @@ const Attendance = () => {
 
       {/* Check In/Out Controls - Available to all users */}
       {canCheckInOut(user) && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Today's Attendance</h3>
+        <Card>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Today's Attendance</h3>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               {todayAttendance && todayAttendance.checkIn ? (
                 <div className="flex items-center space-x-2">
                   {todayAttendance.checkOut ? (
                     <>
-                      <CheckCircle className="h-5 w-5 text-blue-500" />
-                      <span className="text-sm text-gray-600">
+                      <CheckCircle className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
                         Checked in today at {new Date(todayAttendance.checkIn).toLocaleTimeString()}
                         • Checked out at {new Date(todayAttendance.checkOut).toLocaleTimeString()}
                       </span>
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span className="text-sm text-gray-600">
+                      <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
                         Checked in today at {new Date(todayAttendance.checkIn).toLocaleTimeString()}
                       </span>
                     </>
@@ -430,8 +431,8 @@ const Attendance = () => {
                 </div>
               ) : (
                 <div className="flex items-center space-x-2">
-                  <XCircle className="h-5 w-5 text-red-500" />
-                  <span className="text-sm text-gray-600">Not checked in today</span>
+                  <XCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
+                  <span className="text-sm text-gray-600 dark:text-gray-300">Not checked in today</span>
                 </div>
               )}
             </div>
@@ -439,7 +440,7 @@ const Attendance = () => {
               {canCheckIn && (
                 <button
                   onClick={handleCheckIn}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 transition-colors"
                 >
                   <Clock className="h-4 w-4 mr-2" />
                   Check In
@@ -449,7 +450,7 @@ const Attendance = () => {
               {canCheckOut && (
                 <button
                   onClick={handleCheckOut}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
                 >
                   <Clock className="h-4 w-4 mr-2" />
                   Check Out
@@ -457,17 +458,17 @@ const Attendance = () => {
               )}
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Filter Controls - Only for HR users */}
       {canViewAllAttendanceRecords(user) && (
-        <div className="bg-white shadow rounded-lg p-6">
+        <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Filter Records</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Filter Records</h3>
             <div className="flex items-center space-x-4">
               <div className="flex items-center">
-                <Filter className="h-4 w-4 mr-2 text-gray-400" />
+                <Filter className="h-4 w-4 mr-2 text-gray-400 dark:text-gray-500" />
                 <input
                   type="date"
                   value={filterDate}
@@ -475,7 +476,7 @@ const Attendance = () => {
                     setFilterDate(e.target.value);
                     fetchAttendance(e.target.value);
                   }}
-                  className="border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                  className="border border-gray-300 dark:border-slate-600 rounded-md shadow-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-primary-500 focus:border-primary-500 transition-colors"
                 />
               </div>
               <button
@@ -483,38 +484,38 @@ const Attendance = () => {
                   setFilterDate('');
                   fetchAttendance('');
                 }}
-                className="text-sm text-gray-500 hover:text-gray-700"
+                className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               >
                 Clear Filter
               </button>
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Attendance Records */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
+      <Card padding={false} className="overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-slate-700">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
             {canViewAllAttendanceRecords(user) ? 'All Attendance Records' : 'Your Attendance Records'}
           </h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">
+          <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
             {canViewAllAttendanceRecords(user) 
               ? 'Complete attendance history for all employees' 
               : 'Your recent attendance history'
             }
           </p>
         </div>
-        <ul className="divide-y divide-gray-200">
+        <ul className="divide-y divide-gray-200 dark:divide-slate-700">
           {attendance.length === 0 ? (
-            <li className="px-4 py-8 text-center text-gray-500">
+            <li className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
               No attendance records found
             </li>
           ) : (
             attendance
               .filter(record => record.employee && record.employee.user) // Only show records with valid employee data
               .map((record) => (
-              <li key={record._id} className="px-4 py-4">
+              <li key={record._id} className="px-4 py-4 hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
@@ -522,19 +523,19 @@ const Attendance = () => {
                     </div>
                     <div className="ml-4">
                       <div className="flex items-center">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
                           {record.employee?.user?.name || 'Unknown Employee'}
                         </p>
-                        <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-400">
                           {record.employee?.employeeId || 'N/A'}
                         </span>
                         {canViewAllAttendanceRecords(user) && record.employee?.department && (
-                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-gray-300">
                             {record.employee.department}
                           </span>
                         )}
                       </div>
-                      <div className="mt-1 flex items-center text-sm text-gray-500">
+                      <div className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
                         <span>{new Date(record.date).toLocaleDateString()}</span>
                         {record.checkIn && (
                           <>
@@ -557,7 +558,7 @@ const Attendance = () => {
                         {record.overtime > 0 && (
                           <>
                             <span className="mx-2">•</span>
-                            <span className="text-yellow-600">{record.overtime}h overtime</span>
+                            <span className="text-yellow-600 dark:text-yellow-400">{record.overtime}h overtime</span>
                           </>
                         )}
                       </div>
@@ -573,7 +574,7 @@ const Attendance = () => {
             ))
           )}
         </ul>
-      </div>
+      </Card>
     </div>
   );
 };
